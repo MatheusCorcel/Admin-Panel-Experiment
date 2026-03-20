@@ -1,6 +1,7 @@
 import { format } from 'date-fns'
 import { ArrowRight, CheckCircle, UserCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -85,9 +86,16 @@ export function FeedbackDetailSheet({
               </div>
               <div>
                 <p className='font-medium'>{currentRow.coachName}</p>
-                <button className='flex items-center gap-1 text-sm text-primary hover:underline'>
+                <p className='text-sm text-muted-foreground'>
+                  {currentRow.location}
+                </p>
+                <Link
+                  to='/users/$userId'
+                  params={{ userId: currentRow.coachId }}
+                  className='flex items-center gap-1 text-sm text-primary hover:underline'
+                >
                   View Coach Profile <ArrowRight size={14} />
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -103,10 +111,6 @@ export function FeedbackDetailSheet({
             >
               <CheckCircle size={16} />
               Mark as Reviewed
-            </Button>
-            <Button variant='outline'>
-              <UserCircle size={16} />
-              View Coach Profile
             </Button>
           </div>
         </div>

@@ -11,6 +11,7 @@ const feedbackSchema = z.object({
   date: z.coerce.date(),
   coachName: z.string(),
   coachId: z.string(),
+  location: z.string(),
   classType: z.string(),
   classDate: z.coerce.date(),
   content: z.string(),

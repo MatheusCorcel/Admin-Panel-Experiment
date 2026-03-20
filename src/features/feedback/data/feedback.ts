@@ -6,6 +6,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-15T10:30:00'),
     coachName: 'Sarah Chen',
     coachId: '2',
+    location: 'BAM New York',
     classType: 'Push',
     classDate: new Date('2026-03-15T09:00:00'),
     content:
@@ -19,6 +20,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-14T18:45:00'),
     coachName: 'James Rodriguez',
     coachId: '3',
+    location: 'BAM Mexico',
     classType: 'Legs',
     classDate: new Date('2026-03-14T17:30:00'),
     content:
@@ -32,6 +34,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-14T12:15:00'),
     coachName: 'Sarah Chen',
     coachId: '2',
+    location: 'BAM New York',
     classType: 'Pull',
     classDate: new Date('2026-03-14T11:00:00'),
     content:
@@ -45,6 +48,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-13T10:00:00'),
     coachName: 'James Rodriguez',
     coachId: '3',
+    location: 'BAM Madrid',
     classType: 'Full Body',
     classDate: new Date('2026-03-13T09:00:00'),
     content:
@@ -58,6 +62,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-12T19:00:00'),
     coachName: 'Sarah Chen',
     coachId: '2',
+    location: 'BAM New York',
     classType: 'Push',
     classDate: new Date('2026-03-12T18:00:00'),
     content:
@@ -71,6 +76,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-11T10:30:00'),
     coachName: 'James Rodriguez',
     coachId: '3',
+    location: 'BAM Mexico',
     classType: 'Pull',
     classDate: new Date('2026-03-11T09:00:00'),
     content:
@@ -84,6 +90,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-10T17:30:00'),
     coachName: 'Sarah Chen',
     coachId: '2',
+    location: 'BAM New York',
     classType: 'Legs',
     classDate: new Date('2026-03-10T16:00:00'),
     content:
@@ -97,6 +104,7 @@ export const feedbackEntries: Feedback[] = [
     date: new Date('2026-03-09T11:00:00'),
     coachName: 'James Rodriguez',
     coachId: '3',
+    location: 'BAM Madrid',
     classType: 'Full Body',
     classDate: new Date('2026-03-09T10:00:00'),
     content:

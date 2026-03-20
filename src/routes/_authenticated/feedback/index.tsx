@@ -21,6 +21,7 @@ const feedbackSearchSchema = z.object({
     .optional()
     .catch([]),
   coachName: z.array(z.string()).optional().catch([]),
+  location: z.array(z.string()).optional().catch([]),
   keyword: z.string().optional().catch(''),
 })
 

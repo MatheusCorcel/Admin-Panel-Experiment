@@ -9,18 +9,15 @@ import { DataTableRowActions } from './data-table-row-actions'
 
 export const feedbackColumns: ColumnDef<Feedback>[] = [
   {
-    accessorKey: 'date',
+    accessorKey: 'location',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Date' />
+      <DataTableColumnHeader column={column} title='Location' />
     ),
-    cell: ({ row }) => {
-      const date = row.getValue('date') as Date
-      return (
-        <span className='font-medium text-nowrap'>
-          {format(date, 'MM/dd/yyyy')}
-        </span>
-      )
-    },
+    cell: ({ row }) => (
+      <span className='text-nowrap'>{row.getValue('location')}</span>
+    ),
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    enableSorting: false,
     enableHiding: false,
   },
   {

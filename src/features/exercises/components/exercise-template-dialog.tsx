@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { CoachCuesEditor } from '@/components/ui/coach-cues-editor'
 import { muscleGroupLabels, muscleGroups, type ExerciseTemplate } from '../data/schema'
 
 const formSchema = z.object({
@@ -172,10 +172,11 @@ export function ExerciseTemplateDialog({
                 <FormItem>
                   <FormLabel>Coach Cues</FormLabel>
                   <FormControl>
-                    <Textarea
+                    <CoachCuesEditor
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
                       placeholder='Enter coaching instructions for this exercise...'
-                      className='min-h-28'
-                      {...field}
+                      minHeight='min-h-[112px]'
                     />
                   </FormControl>
                   <FormMessage />

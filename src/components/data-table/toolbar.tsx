@@ -9,6 +9,7 @@ type DataTableToolbarProps<TData> = {
   table: Table<TData>
   searchPlaceholder?: string
   searchKey?: string
+  hideViewOptions?: boolean
   filters?: {
     columnId: string
     title: string
@@ -24,6 +25,7 @@ export function DataTableToolbar<TData>({
   table,
   searchPlaceholder = 'Filter...',
   searchKey,
+  hideViewOptions = false,
   filters = [],
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
@@ -79,7 +81,11 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      {!hideViewOptions && (
+        <div className='ml-4 shrink-0'>
+          <DataTableViewOptions table={table} />
+        </div>
+      )}
     </div>
   )
 }

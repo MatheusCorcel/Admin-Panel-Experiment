@@ -27,8 +27,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { CoachCuesEditor } from '@/components/ui/coach-cues-editor'
 import { type Exercise } from '../data/schema'
 import { ExerciseNameCombobox } from './exercise-name-combobox'
 
@@ -285,10 +285,11 @@ export function ExerciseEditorDialog({
                     <FormItem>
                       <FormLabel>Coach Cues</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <CoachCuesEditor
+                          value={field.value ?? ''}
+                          onChange={field.onChange}
                           placeholder='Optional coaching notes...'
-                          className='min-h-20'
-                          {...field}
+                          minHeight='min-h-[80px]'
                         />
                       </FormControl>
                       <FormMessage />
@@ -375,10 +376,11 @@ export function ExerciseEditorDialog({
                       <FormItem>
                         <FormLabel>Coach Cues</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <CoachCuesEditor
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
                             placeholder='Optional...'
-                            className='min-h-16'
-                            {...field}
+                            minHeight='min-h-[64px]'
                           />
                         </FormControl>
                         <FormMessage />
@@ -463,10 +465,11 @@ export function ExerciseEditorDialog({
                       <FormItem>
                         <FormLabel>Coach Cues</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <CoachCuesEditor
+                            value={field.value ?? ''}
+                            onChange={field.onChange}
                             placeholder='Optional...'
-                            className='min-h-16'
-                            {...field}
+                            minHeight='min-h-[64px]'
                           />
                         </FormControl>
                         <FormMessage />

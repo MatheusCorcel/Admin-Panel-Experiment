@@ -21,3 +21,9 @@ export const coachOptions = [
   { label: 'Sarah Chen', value: 'Sarah Chen' },
   { label: 'James Rodriguez', value: 'James Rodriguez' },
 ] as const
+
+export const locationOptions = [
+  { label: 'BAM New York', value: 'BAM New York' },
+  { label: 'BAM Mexico', value: 'BAM Mexico' },
+  { label: 'BAM Madrid', value: 'BAM Madrid' },
+] as const

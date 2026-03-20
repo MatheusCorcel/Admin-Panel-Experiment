@@ -1,6 +1,6 @@
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { type Row } from '@tanstack/react-table'
-import { CheckCircle, UserCircle } from 'lucide-react'
+import { CheckCircle, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -50,9 +50,9 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
             setOpen('detail')
           }}
         >
-          View Coach Profile
+          View Details
           <DropdownMenuShortcut>
-            <UserCircle size={16} />
+            <FileText size={16} />
           </DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>

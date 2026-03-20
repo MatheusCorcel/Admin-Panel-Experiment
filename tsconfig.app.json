@@ -18,7 +18,9 @@
     /* Alias */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@annotation-tool": ["../annotation-tool/index.ts"],
+      "@annotation-tool/*": ["../annotation-tool/src/*"]
     },
 
     /* Linting */
@@ -28,5 +30,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "../annotation-tool/src", "../annotation-tool/index.ts"]
 }

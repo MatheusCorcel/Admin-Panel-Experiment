@@ -7,7 +7,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@annotation-tool": ["../annotation-tool/index.ts"],
+      "@annotation-tool/*": ["../annotation-tool/src/*"]
     }
   }
 }

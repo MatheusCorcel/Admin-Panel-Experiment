@@ -20,20 +20,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@annotation-tool': path.resolve(__dirname, './src/annotation-tool'),
     },
   },
   server: {
-    allowedHosts: ['.ngrok-free.dev'],
-    watch: {
-      // iCloud Drive continuously touches .icloud placeholder files and syncs
-      // file metadata, which triggers Vite's watcher and causes spurious reloads.
-      // Ignore all non-src paths aggressively to avoid chokidar scan overload.
-      ignored: (path: string) =>
-        path.includes('/.icloud') ||
-        path.includes('/.DS_Store') ||
-        (!path.includes('/admin-panel/src') &&
-          !path.includes('/admin-panel/index.html') &&
-          !path.includes('/admin-panel/vite.config')),
-    },
+    port: 3000,
+    host: '0.0.0.0',
+    allowedHosts: true,
   },
 })
