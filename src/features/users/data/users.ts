@@ -1,0 +1,110 @@
+import { faker } from '@faker-js/faker'
+import type { User } from './schema'
+
+faker.seed(42)
+
+const bamUsers: User[] = [
+  {
+    id: '1',
+    firstName: 'Miguel',
+    lastName: 'Berlanga',
+    email: 'miguel.berlanga@bamlabs.com',
+    phone: '555-123-4567',
+    role: 'admin',
+    status: 'active',
+    location: 'BAM New York',
+    classesCompleted: 89,
+    classesMissed: 2,
+    lastCheckIn: new Date('2026-03-15T09:00:00'),
+    gender: 'Male',
+    createdAt: new Date('2025-06-01'),
+    updatedAt: new Date('2026-03-15'),
+  },
+  {
+    id: '2',
+    firstName: 'Sarah',
+    lastName: 'Chen',
+    email: 'sarah@bamlabs.com',
+    phone: '555-234-5678',
+    role: 'head_coach',
+    status: 'active',
+    location: 'BAM New York',
+    classesCompleted: 142,
+    classesMissed: 1,
+    lastCheckIn: new Date('2026-03-15T08:30:00'),
+    gender: 'Female',
+    createdAt: new Date('2025-03-15'),
+    updatedAt: new Date('2026-03-15'),
+  },
+  {
+    id: '3',
+    firstName: 'James',
+    lastName: 'Rodriguez',
+    email: 'james@bamlabs.com',
+    phone: '555-345-6789',
+    role: 'coach',
+    status: 'active',
+    location: 'BAM New York',
+    classesCompleted: 67,
+    classesMissed: 5,
+    lastCheckIn: new Date('2026-03-14T19:00:00'),
+    gender: 'Male',
+    createdAt: new Date('2025-08-10'),
+    updatedAt: new Date('2026-03-14'),
+  },
+  {
+    id: '4',
+    firstName: 'Ana',
+    lastName: 'Torres',
+    email: 'ana@bamlabs.com',
+    phone: '555-456-7890',
+    role: 'admin',
+    status: 'active',
+    location: 'BAM New York',
+    classesCompleted: 0,
+    classesMissed: 0,
+    lastCheckIn: new Date('2026-03-14T17:15:00'),
+    gender: 'Female',
+    createdAt: new Date('2025-09-01'),
+    updatedAt: new Date('2026-03-14'),
+  },
+  {
+    id: '5',
+    firstName: 'Derek',
+    lastName: 'Williams',
+    email: 'derek@bamlabs.com',
+    phone: '555-567-8901',
+    role: 'coach',
+    status: 'inactive',
+    location: 'BAM New York',
+    classesCompleted: 34,
+    classesMissed: 8,
+    lastCheckIn: new Date('2026-03-13T18:00:00'),
+    gender: 'Male',
+    createdAt: new Date('2025-11-20'),
+    updatedAt: new Date('2026-03-13'),
+  },
+]
+
+const generatedUsers: User[] = Array.from({ length: 25 }, (_, i) => {
+  const firstName = faker.person.firstName()
+  const lastName = faker.person.lastName()
+  return {
+    id: `gen-${i + 1}`,
+    firstName,
+    lastName,
+    email: faker.internet.email({ firstName }).toLowerCase(),
+    phone: faker.phone.number({ style: 'national' }),
+    role: faker.helpers.arrayElement(['coach', 'coach', 'coach', 'head_coach', 'admin'] as const),
+    status: faker.helpers.arrayElement(['active', 'active', 'active', 'inactive'] as const),
+    location: 'BAM New York',
+    classesCompleted: faker.number.int({ min: 0, max: 200 }),
+    classesMissed: faker.number.int({ min: 0, max: 20 }),
+    lastCheckIn: faker.date.recent({ days: 14 }),
+    gender: faker.helpers.arrayElement(['Male', 'Female', 'Non-binary']),
+    createdAt: faker.date.past({ years: 1 }),
+    updatedAt: faker.date.recent({ days: 30 }),
+  }
+})
+
+export const users: User[] = [...bamUsers, ...generatedUsers]
