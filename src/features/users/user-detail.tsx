@@ -213,28 +213,6 @@ export function UserDetail() {
                 value={format(user.createdAt, 'MMM d, yyyy')}
               />
             </div>
-            {/* Coach/Head Coach info comes from Mindbody. Only users can edit their profile. */}
-            {isCoachRole && (
-              <div className='mt-6 flex flex-col gap-2 border-t pt-4'>
-                <p className='text-sm text-muted-foreground'>
-                  Coach information is synced from Mindbody. Use the button
-                  below to refresh their profile data.
-                </p>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='w-fit'
-                  onClick={() => {
-                    toast.success('Sync complete', {
-                      description: `${fullName}'s profile has been updated from Mindbody.`,
-                    })
-                  }}
-                >
-                  <RefreshCw size={16} className='mr-2' />
-                  Sync with Mindbody
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -255,6 +233,22 @@ export function UserDetail() {
                   value={String(user.classesMissed)}
                 />
                 <StatItem
+                  label='Early Check-Ins'
+                  value={String(user.earlyCheckIns)}
+                />
+                <StatItem
+                  label='Late Check-Ins'
+                  value={String(user.lateCheckIns)}
+                />
+                <StatItem
+                  label='Sessions This Month'
+                  value={String(user.sessionsThisMonth)}
+                />
+                <StatItem
+                  label='Sessions This Year'
+                  value={String(user.sessionsThisYear)}
+                />
+                <StatItem
                   label='Last Check-In'
                   value={
                     user.lastCheckIn
@@ -262,7 +256,14 @@ export function UserDetail() {
                       : '—'
                   }
                 />
-                <StatItem label='Early/Late Check-in' value='—' />
+                <StatItem
+                  label='Last Check-Out'
+                  value={
+                    user.lastCheckOut
+                      ? format(user.lastCheckOut, 'MMM d, yyyy')
+                      : '—'
+                  }
+                />
               </div>
               <div>
                 <Button

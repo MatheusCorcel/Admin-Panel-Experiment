@@ -83,6 +83,17 @@ export const usersColumns: ColumnDef<User>[] = [
     },
   },
   {
+    accessorKey: 'lastCheckOut',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Last Check Out' />
+    ),
+    cell: ({ row }) => {
+      const date = row.getValue('lastCheckOut') as Date | null
+      if (!date) return <span className='text-muted-foreground'>—</span>
+      return <span className='text-nowrap'>{format(date, 'MM/dd/yyyy hh:mm a')}</span>
+    },
+  },
+  {
     accessorKey: 'classesMissed',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Missed' />
