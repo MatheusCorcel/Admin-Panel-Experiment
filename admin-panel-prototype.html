@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAM Labs Admin Panel – Prototype</title>
+<style>
+  :root {
+    --ink: #0f1629;
+    --ink-light: #3a3f52;
+    --border: #d4d6db;
+    --bg: #ffffff;
+    --bg-muted: #f5f6f8;
+    --bg-hover: #ebedf1;
+    --accent: #0f1629;
+    --badge-green: #d1fae5;
+    --badge-green-text: #065f46;
+    --badge-yellow: #fef3c7;
+    --badge-yellow-text: #92400e;
+    --badge-red: #fee2e2;
+    --badge-red-text: #991b1b;
+    --badge-gray: #e5e7eb;
+    --badge-gray-text: #374151;
+    --radius: 6px;
+    --radius-lg: 10px;
+    --shadow: 0 4px 16px rgba(0,0,0,.10);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Layout ── */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    background: var(--ink);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 24px 20px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -.3px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+  }
+  .sidebar-nav { flex: 1; padding: 12px 0; }
+  .sidebar-nav a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    color: rgba(255,255,255,.6);
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .sidebar-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+  .sidebar-nav a.active { background: rgba(255,255,255,.12); color: #fff; font-weight: 600; }
+  .sidebar-nav a .nav-icon { width: 18px; text-align: center; font-size: 15px; }
+  .sidebar-bottom {
+    padding: 12px 0;
+    border-top: 1px solid rgba(255,255,255,.1);
+  }
+  .sidebar-bottom a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    color: rgba(255,255,255,.5);
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .sidebar-bottom a:hover { color: #fff; }
+
+  .main { flex: 1; margin-left: 220px; }
+  .page { padding: 32px 40px; display: none; }
+  .page.active { display: block; }
+
+  /* ── Account Creation ── */
+  .auth-wrapper {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg-muted);
+  }
+  .auth-wrapper.active { display: flex; }
+  .auth-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 48px 40px;
+    width: 420px;
+    max-width: 90vw;
+  }
+  .auth-card .logo {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    margin-bottom: 4px;
+  }
+  .auth-card .headline {
+    color: var(--ink-light);
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+
+  /* ── Typography ── */
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: opacity .15s;
+    text-decoration: none;
+  }
+  .btn:hover { opacity: .85; }
+  .btn-primary {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border-color: #dc2626;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border: none;
+    padding: 6px 10px;
+  }
+  .btn-ghost:hover { background: var(--bg-hover); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-lg { padding: 12px 24px; font-size: 15px; }
+  .btn-block { width: 100%; justify-content: center; }
+
+  /* ── Inputs ── */
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--ink);
+  }
+  .form-textarea { min-height: 100px; resize: vertical; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 100px;
+    line-height: 1.4;
+  }
+  .badge-outline {
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+  }
+  .badge-active { background: var(--badge-green); color: var(--badge-green-text); }
+  .badge-inactive { background: var(--badge-gray); color: var(--badge-gray-text); }
+  .badge-draft { background: var(--badge-yellow); color: var(--badge-yellow-text); }
+  .badge-published { background: var(--badge-green); color: var(--badge-green-text); }
+  .badge-new { background: #dbeafe; color: #1e40af; }
+  .badge-reviewed { background: var(--badge-gray); color: var(--badge-gray-text); }
+
+  /* ── Page Header ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-header-left { display: flex; align-items: center; gap: 12px; }
+  .page-header-actions { display: flex; gap: 8px; }
+
+  /* ── Search + Filter Bar ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 0 0 280px;
+  }
+  .search-box input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius) 0 0 var(--radius);
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .search-box input:focus { outline: none; border-color: var(--ink); }
+  .search-box .btn {
+    border-radius: 0 var(--radius) var(--radius) 0;
+    border-left: none;
+  }
+  .toolbar-spacer { flex: 1; }
+
+  /* ── Tables ── */
+  .table-wrap {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: var(--bg-muted);
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  thead th .sort-icon { font-size: 10px; margin-left: 4px; opacity: .4; }
+  tbody td {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr { cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: var(--bg-hover); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .row-actions-cell { text-align: right; position: relative; }
+  .row-action-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background .15s;
+  }
+  .row-action-btn:hover { background: var(--bg-hover); }
+
+  /* ── Context Menu ── */
+  .context-menu {
+    position: absolute;
+    right: 0; top: 100%;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    min-width: 140px;
+    z-index: 50;
+    display: none;
+    padding: 4px 0;
+  }
+  .context-menu.show { display: block; }
+  .context-menu a {
+    display: block;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .context-menu a:hover { background: var(--bg-hover); }
+  .context-menu a.danger { color: #dc2626; }
+
+  /* ── Pagination ── */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    font-size: 13px;
+    color: var(--ink-light);
+  }
+  .pagination-pages { display: flex; gap: 4px; }
+  .pagination-pages button {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .pagination-pages button:hover { background: var(--bg-hover); }
+  .pagination-pages button.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .pagination-pages .ellipsis {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    width: 520px;
+    max-width: 92vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-header h2 { margin-bottom: 0; }
+  .modal-close {
+    width: 32px; height: 32px;
+    border: none; background: transparent;
+    font-size: 20px; cursor: pointer;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--bg-hover); }
+  .modal-body { padding: 24px; }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Back Link ── */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+  .back-link:hover { opacity: .7; }
+
+  /* ── Profile Header ── */
+  .profile-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .profile-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--bg-muted);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .profile-info { flex: 1; }
+  .profile-info .name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .profile-info .name-row h1 { font-size: 24px; }
+  .profile-info .meta {
+    color: var(--ink-light);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .profile-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ── Detail Sections ── */
+  .detail-section {
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-bottom: 32px;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .detail-item label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .detail-item span {
+    font-size: 14px;
+    color: var(--ink-light);
+  }
+
+  /* ── More Actions Dropdown ── */
+  .dropdown-wrap { position: relative; display: inline-block; }
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0; top: calc(100% + 4px);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    min-width: 160px;
+    z-index: 50;
+    padding: 4px 0;
+  }
+  .dropdown-menu.show { display: block; }
+  .dropdown-menu a {
+    display: block;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .dropdown-menu a:hover { background: var(--bg-hover); }
+  .dropdown-menu a.danger { color: #dc2626; }
+
+  /* ── Toggle ── */
+  .toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
+  .toggle-label { font-size: 14px; }
+  .toggle {
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background .2s;
+    border: none;
+  }
+  .toggle.on { background: var(--ink); }
+  .toggle::after {
+    content: '';
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: transform .2s;
+  }
+  .toggle.on::after { transform: translateX(18px); }
+
+  /* ── Drag Handle ── */
+  .drag-handle {
+    cursor: grab;
+    color: var(--border);
+    font-size: 16px;
+    user-select: none;
+    padding: 0 4px;
+  }
+  .drag-handle:hover { color: var(--ink-light); }
+
+  /* ── Editable Inline ── */
+  .editable-inline {
+    font-size: 26px;
+    font-weight: 700;
+    border: none;
+    border-bottom: 2px dashed var(--border);
+    padding: 2px 4px;
+    font-family: inherit;
+    background: transparent;
+    color: var(--ink);
+    width: 300px;
+  }
+  .editable-inline:focus {
+    outline: none;
+    border-color: var(--ink);
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+    z-index: 300;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: transform .3s, opacity .3s;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── Feedback detail drawer ── */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 200;
+  }
+  .drawer-overlay.show { display: block; }
+  .drawer {
+    position: fixed;
+    top: 0; right: -500px; bottom: 0;
+    width: 480px;
+    max-width: 90vw;
+    background: #fff;
+    z-index: 201;
+    transition: right .25s ease;
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+  .drawer.show { right: 0; }
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-body { padding: 24px; }
+
+  /* ── Misc ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+  .text-muted { color: var(--ink-light); }
+  .text-sm { font-size: 13px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .gap-8 { gap: 8px; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .status-dot.active { background: #10b981; }
+  .status-dot.inactive { background: #9ca3af; }
+
+  /* ── Rich text placeholder ── */
+  .rich-text-placeholder {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    min-height: 160px;
+    padding: 12px;
+  }
+  .rich-text-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-muted);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .rich-text-toolbar button {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .rich-text-body {
+    min-height: 120px;
+    padding: 12px;
+    font-size: 14px;
+    color: var(--ink-light);
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- ACCOUNT CREATION 0.0                                    -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="auth-wrapper active" id="auth-screen">
+  <div class="auth-card" id="auth-step-email">
+    <div class="logo">BAM Labs</div>
+    <div class="headline">Admin Panel</div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" class="form-input" placeholder="you@example.com" value="admin@bamlabs.com">
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="showAuthStep('otp')">Send OTP Code</button>
+    <p class="text-muted text-sm mt-16" style="text-align:center">Invite-only access. No public registration.</p>
+  </div>
+
+  <div class="auth-card hidden" id="auth-step-otp">
+    <div class="logo">BAM Labs</div>
+    <div class="headline">Enter the code we sent to your email</div>
+    <div class="form-group">
+      <label>OTP Code</label>
+      <input type="text" class="form-input" placeholder="000000" value="482901" maxlength="6" style="text-align:center; font-size:24px; letter-spacing:8px;">
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="showAuthStep('onboarding')">Verify</button>
+    <p class="text-muted text-sm mt-16" style="text-align:center"><a href="#" onclick="showAuthStep('email'); return false">Use a different email</a></p>
+  </div>
+
+  <div class="auth-card hidden" id="auth-step-onboarding">
+    <div class="logo">BAM Labs</div>
+    <div class="headline">Complete your profile</div>
+    <div class="form-group" style="text-align:center">
+      <div class="profile-avatar" style="width:80px;height:80px;margin:0 auto 8px;font-size:24px;cursor:pointer" title="Upload photo">📷</div>
+      <span class="text-muted text-sm">Upload photo</span>
+    </div>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" class="form-input" placeholder="Your name" value="Miguel Berlanga">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Gender <span class="text-muted">(optional)</span></label>
+        <select class="form-select">
+          <option>Select...</option>
+          <option selected>Male</option>
+          <option>Female</option>
+          <option>Non-binary</option>
+          <option>Prefer not to say</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Phone <span class="text-muted">(optional)</span></label>
+        <input type="tel" class="form-input" placeholder="555-123-4567" value="555-123-4567">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="enterApp()">Get Started</button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MAIN APP SHELL                                          -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="app hidden" id="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">BAM Labs</div>
+    <nav class="sidebar-nav">
+      <a class="active" data-nav="users"><span class="nav-icon">👥</span> Users</a>
+      <a data-nav="routines"><span class="nav-icon">🏃</span> Routines</a>
+      <a data-nav="faqs"><span class="nav-icon">❓</span> FAQs</a>
+      <a data-nav="feedback"><span class="nav-icon">💬</span> Feedback</a>
+      <a data-nav="settings"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a onclick="signOut()"><span class="nav-icon">🚪</span> Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- USERS 1.0                                -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page active" id="page-users">
+      <div class="page-header">
+        <h1>Users</h1>
+        <div class="page-header-actions">
+          <button class="btn btn-outline" onclick="openModal('filter-modal')">☰ Filter</button>
+          <button class="btn btn-primary" onclick="openModal('invite-modal')">+ Invite Coach</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" placeholder="Search by name or email">
+          <button class="btn btn-primary">Search</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name <span class="sort-icon">⇅</span></th>
+              <th>Role <span class="sort-icon">⇅</span></th>
+              <th>Email</th>
+              <th>Location <span class="sort-icon">⇅</span></th>
+              <th>Last Check In <span class="sort-icon">⇅</span></th>
+              <th>Missed <span class="sort-icon">⇅</span></th>
+              <th>Completed <span class="sort-icon">⇅</span></th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td onclick="showPage('coach-detail')">Miguel Berlanga</td>
+              <td>Admin</td>
+              <td>example@email.com</td>
+              <td>BAM New York</td>
+              <td>03/15/2026 09:00 AM</td>
+              <td>02</td>
+              <td>89</td>
+              <td><span class="status-dot active"></span>Active</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('coach-detail')">View</a>
+                  <a onclick="showPage('coach-detail')">Edit</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Remove</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('coach-detail')">Sarah Chen</td>
+              <td>Head Coach</td>
+              <td>sarah@bamlabs.com</td>
+              <td>BAM New York</td>
+              <td>03/15/2026 08:30 AM</td>
+              <td>01</td>
+              <td>142</td>
+              <td><span class="status-dot active"></span>Active</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('coach-detail')">View</a>
+                  <a onclick="showPage('coach-detail')">Edit</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Remove</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('coach-detail')">James Rodriguez</td>
+              <td>Coach</td>
+              <td>james@bamlabs.com</td>
+              <td>BAM New York</td>
+              <td>03/14/2026 07:00 PM</td>
+              <td>05</td>
+              <td>67</td>
+              <td><span class="status-dot active"></span>Active</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('coach-detail')">View</a>
+                  <a onclick="showPage('coach-detail')">Edit</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Remove</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('admin-detail')">Ana Torres</td>
+              <td>Admin</td>
+              <td>ana@bamlabs.com</td>
+              <td>BAM New York</td>
+              <td>03/14/2026 05:15 PM</td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="status-dot active"></span>Active</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('admin-detail')">View</a>
+                  <a onclick="showPage('admin-detail')">Edit</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Remove</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('coach-detail')">Derek Williams</td>
+              <td>Coach</td>
+              <td>derek@bamlabs.com</td>
+              <td>BAM New York</td>
+              <td>03/13/2026 06:00 PM</td>
+              <td>08</td>
+              <td>34</td>
+              <td><span class="status-dot inactive"></span>Inactive</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('coach-detail')">View</a>
+                  <a onclick="showPage('coach-detail')">Edit</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Remove</a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span>Showing 5 of 1,234</span>
+        <div class="pagination-pages">
+          <button>←</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <span class="ellipsis">..</span>
+          <button>8</button>
+          <button>9</button>
+          <button>10</button>
+          <button>→</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- COACH DETAILS 1.2.0                      -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-coach-detail">
+      <a class="back-link" onclick="showPage('users')">← Back</a>
+
+      <div class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-info">
+          <div class="name-row">
+            <h1>Miguel Berlanga</h1>
+            <span class="badge badge-outline">Admin</span>
+          </div>
+          <div class="meta">example@email.com</div>
+        </div>
+        <div class="profile-actions">
+          <div class="dropdown-wrap">
+            <button class="btn btn-outline" onclick="toggleDropdown(this)">More actions</button>
+            <div class="dropdown-menu">
+              <a onclick="closeAllDropdowns()">Change Role</a>
+              <a onclick="closeAllDropdowns()">Deactivate</a>
+              <a class="danger" onclick="openModal('confirm-delete-modal'); closeAllDropdowns()">Delete</a>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="navigate('feedback')">View Feedbacks</button>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h2>General Details</h2>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Status</label>
+            <span><span class="status-dot active"></span>Active</span>
+          </div>
+          <div class="detail-item">
+            <label>Email</label>
+            <span>example@email.com</span>
+          </div>
+          <div class="detail-item">
+            <label>Location</label>
+            <span>BAM New York</span>
+          </div>
+          <div class="detail-item">
+            <label>Gender</label>
+            <span>Male</span>
+          </div>
+          <div class="detail-item">
+            <label>Phone</label>
+            <span>555-123-4567</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h2>Activity Summary</h2>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Classes Missed</label>
+            <span>02</span>
+          </div>
+          <div class="detail-item">
+            <label>Classes Completed</label>
+            <span>89</span>
+          </div>
+          <div class="detail-item">
+            <label>Early Check-In</label>
+            <span>80</span>
+          </div>
+          <div class="detail-item">
+            <label>Late Check-In</label>
+            <span>09</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- ADMIN DETAILS 1.3.0                      -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-admin-detail">
+      <a class="back-link" onclick="showPage('users')">← Back</a>
+
+      <div class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-info">
+          <div class="name-row">
+            <h1>Ana Torres</h1>
+            <span class="badge badge-outline">Admin</span>
+          </div>
+          <div class="meta">ana@bamlabs.com</div>
+        </div>
+        <div class="profile-actions">
+          <div class="dropdown-wrap">
+            <button class="btn btn-outline" onclick="toggleDropdown(this)">More actions</button>
+            <div class="dropdown-menu">
+              <a onclick="closeAllDropdowns()">Change Role</a>
+              <a onclick="closeAllDropdowns()">Deactivate</a>
+              <a class="danger" onclick="openModal('confirm-delete-modal'); closeAllDropdowns()">Delete</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h2>General Details</h2>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Status</label>
+            <span><span class="status-dot active"></span>Active</span>
+          </div>
+          <div class="detail-item">
+            <label>Email</label>
+            <span>ana@bamlabs.com</span>
+          </div>
+          <div class="detail-item">
+            <label>Role</label>
+            <span>Admin</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <h2>Activity Summary</h2>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Last Check-in Online</label>
+            <span>03/14/2026 05:15 PM</span>
+          </div>
+        </div>
+        <p class="text-muted text-sm mt-8">No class-related metrics — admins don't teach.</p>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- ROUTINES 2.0                             -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-routines">
+      <div class="page-header">
+        <h1>Routines</h1>
+        <div class="page-header-actions">
+          <button class="btn btn-outline" onclick="openModal('filter-modal')">☰ Filter</button>
+          <button class="btn btn-primary" onclick="showPage('routine-editor')">+ Create Routine</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" placeholder="Search by routine name">
+          <button class="btn btn-primary">Search</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Routine Name <span class="sort-icon">⇅</span></th>
+              <th>Type <span class="sort-icon">⇅</span></th>
+              <th>Status</th>
+              <th>Exercises <span class="sort-icon">⇅</span></th>
+              <th>Created By</th>
+              <th>Last Updated <span class="sort-icon">⇅</span></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td onclick="showPage('routine-detail')">Push Day A</td>
+              <td>Push</td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td>8</td>
+              <td>Miguel Berlanga</td>
+              <td>03/14/2026</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('routine-detail')">View</a>
+                  <a onclick="showPage('routine-editor')">Edit</a>
+                  <a onclick="toast('Routine duplicated')">Duplicate</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Delete</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('routine-detail')">Pull Day B</td>
+              <td>Pull</td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td>7</td>
+              <td>Sarah Chen</td>
+              <td>03/12/2026</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('routine-detail')">View</a>
+                  <a onclick="showPage('routine-editor')">Edit</a>
+                  <a onclick="toast('Routine duplicated')">Duplicate</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Delete</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('routine-detail')">Legs Hypertrophy</td>
+              <td>Legs</td>
+              <td><span class="badge badge-draft">Draft</span></td>
+              <td>6</td>
+              <td>Miguel Berlanga</td>
+              <td>03/10/2026</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('routine-detail')">View</a>
+                  <a onclick="showPage('routine-editor')">Edit</a>
+                  <a onclick="toast('Routine duplicated')">Duplicate</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Delete</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="showPage('routine-detail')">Full Body Intro</td>
+              <td>Full Body</td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td>10</td>
+              <td>James Rodriguez</td>
+              <td>03/08/2026</td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="showPage('routine-detail')">View</a>
+                  <a onclick="showPage('routine-editor')">Edit</a>
+                  <a onclick="toast('Routine duplicated')">Duplicate</a>
+                  <a class="danger" onclick="openModal('confirm-delete-modal')">Delete</a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span>Showing 4 of 24</span>
+        <div class="pagination-pages">
+          <button>←</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>→</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- ROUTINE DETAILS 2.1.0 (read-only)        -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-routine-detail">
+      <a class="back-link" onclick="showPage('routines')">← Back</a>
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Push Day A</h1>
+          <span class="badge badge-outline">Push</span>
+          <span class="badge badge-published">Published</span>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-primary" onclick="showPage('routine-editor')">Edit Routine</button>
+          <div class="dropdown-wrap">
+            <button class="btn btn-outline" onclick="toggleDropdown(this)">More</button>
+            <div class="dropdown-menu">
+              <a onclick="toast('Status changed'); closeAllDropdowns()">Unpublish</a>
+              <a onclick="toast('Routine duplicated'); closeAllDropdowns()">Duplicate</a>
+              <a class="danger" onclick="openModal('confirm-delete-modal'); closeAllDropdowns()">Delete</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-grid mb-16">
+        <div class="detail-item">
+          <label>Last Updated</label>
+          <span>March 14, 2026</span>
+        </div>
+        <div class="detail-item">
+          <label>Created By</label>
+          <span>Miguel Berlanga</span>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2>Exercises</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Exercise Name</th>
+              <th>Type</th>
+              <th>Sets</th>
+              <th>Reps</th>
+              <th>Rec. Weight</th>
+              <th>Coach Cues</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="cursor:default">
+              <td>1</td>
+              <td>Barbell Bench Press</td>
+              <td>Compound</td>
+              <td>4</td>
+              <td>8-10</td>
+              <td>135 lbs</td>
+              <td>Drive feet into floor, arch back</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>2</td>
+              <td>Incline Dumbbell Press</td>
+              <td>Compound</td>
+              <td>3</td>
+              <td>10-12</td>
+              <td>50 lbs</td>
+              <td>Control the negative</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>3</td>
+              <td>Overhead Press</td>
+              <td>Compound</td>
+              <td>4</td>
+              <td>6-8</td>
+              <td>95 lbs</td>
+              <td>Brace core, no lean back</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>4</td>
+              <td>Cable Flyes</td>
+              <td>Isolation</td>
+              <td>3</td>
+              <td>12-15</td>
+              <td>25 lbs</td>
+              <td>Squeeze at peak contraction</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>5</td>
+              <td>Lateral Raises</td>
+              <td>Isolation</td>
+              <td>3</td>
+              <td>15</td>
+              <td>15 lbs</td>
+              <td>Slight bend in elbow, controlled</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>6</td>
+              <td>Tricep Pushdowns</td>
+              <td>Isolation</td>
+              <td>3</td>
+              <td>12-15</td>
+              <td>40 lbs</td>
+              <td>Elbows pinned to sides</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>7</td>
+              <td>Dips</td>
+              <td>Compound</td>
+              <td>3</td>
+              <td>8-12</td>
+              <td>BW</td>
+              <td>Lean slightly forward for chest</td>
+            </tr>
+            <tr style="cursor:default">
+              <td>8</td>
+              <td>Overhead Tricep Extension</td>
+              <td>Isolation</td>
+              <td>3</td>
+              <td>10-12</td>
+              <td>30 lbs</td>
+              <td>Full stretch at bottom</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- ROUTINE EDITOR 2.1.1                     -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-routine-editor">
+      <a class="back-link" onclick="showPage('routine-detail')">← Back to Routine</a>
+
+      <div class="page-header">
+        <div class="page-header-left" style="gap:12px">
+          <input type="text" class="editable-inline" value="Push Day A">
+          <select class="form-select" style="width:140px">
+            <option selected>Push</option>
+            <option>Pull</option>
+            <option>Legs</option>
+            <option>Full Body</option>
+          </select>
+          <span class="badge badge-published">Published</span>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-outline" onclick="toast('Draft saved')">Save Draft</button>
+          <button class="btn btn-primary" onclick="openModal('publish-modal')">Publish</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px"></th>
+              <th>#</th>
+              <th>Exercise Name</th>
+              <th>Type</th>
+              <th>Sets</th>
+              <th>Reps</th>
+              <th>Rec. Weight</th>
+              <th>Coach Cues</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="cursor:default">
+              <td><span class="drag-handle">⠿</span></td>
+              <td>1</td>
+              <td>Barbell Bench Press</td>
+              <td>Compound</td>
+              <td>4</td>
+              <td>8-10</td>
+              <td>135 lbs</td>
+              <td>Drive feet into floor, arch back</td>
+              <td class="row-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('exercise-modal')">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="this.closest('tr').remove()">✕</button>
+              </td>
+            </tr>
+            <tr style="cursor:default">
+              <td><span class="drag-handle">⠿</span></td>
+              <td>2</td>
+              <td>Incline Dumbbell Press</td>
+              <td>Compound</td>
+              <td>3</td>
+              <td>10-12</td>
+              <td>50 lbs</td>
+              <td>Control the negative</td>
+              <td class="row-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('exercise-modal')">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="this.closest('tr').remove()">✕</button>
+              </td>
+            </tr>
+            <tr style="cursor:default">
+              <td><span class="drag-handle">⠿</span></td>
+              <td>3</td>
+              <td>Overhead Press</td>
+              <td>Compound</td>
+              <td>4</td>
+              <td>6-8</td>
+              <td>95 lbs</td>
+              <td>Brace core, no lean back</td>
+              <td class="row-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('exercise-modal')">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="this.closest('tr').remove()">✕</button>
+              </td>
+            </tr>
+            <tr style="cursor:default">
+              <td><span class="drag-handle">⠿</span></td>
+              <td>4</td>
+              <td>Cable Flyes</td>
+              <td>Isolation</td>
+              <td>3</td>
+              <td>12-15</td>
+              <td>25 lbs</td>
+              <td>Squeeze at peak contraction</td>
+              <td class="row-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('exercise-modal')">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="this.closest('tr').remove()">✕</button>
+              </td>
+            </tr>
+            <tr style="cursor:default">
+              <td><span class="drag-handle">⠿</span></td>
+              <td>5</td>
+              <td>Lateral Raises</td>
+              <td>Isolation</td>
+              <td>3</td>
+              <td>15</td>
+              <td>15 lbs</td>
+              <td>Slight bend in elbow, controlled</td>
+              <td class="row-actions-cell">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('exercise-modal')">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="color:#dc2626" onclick="this.closest('tr').remove()">✕</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-16">
+        <div class="dropdown-wrap">
+          <button class="btn btn-outline" onclick="toggleDropdown(this)">+ Add Exercise</button>
+          <div class="dropdown-menu" style="left:0;right:auto">
+            <a onclick="openModal('exercise-modal'); closeAllDropdowns()">Create New Exercise</a>
+            <a onclick="toast('Select from exercise library (placeholder)'); closeAllDropdowns()">Select Existing</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- FAQS 3.0                                 -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-faqs">
+      <div class="page-header">
+        <h1>FAQs</h1>
+        <div class="page-header-actions">
+          <button class="btn btn-outline" onclick="openModal('filter-modal')">☰ Filter</button>
+          <button class="btn btn-primary" onclick="openModal('faq-modal')">+ Add FAQ</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px"></th>
+              <th>Question</th>
+              <th>Answer Preview</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="drag-handle">⠿</span></td>
+              <td onclick="openModal('faq-modal')">How do I reset my password?</td>
+              <td class="text-muted">To reset your password, go to the login screen and tap "Forgot Password"…</td>
+              <td>Account</td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="openModal('faq-modal')">Edit</a>
+                  <a onclick="toast('FAQ unpublished')">Unpublish</a>
+                  <a class="danger" onclick="toast('FAQ archived')">Archive</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="drag-handle">⠿</span></td>
+              <td onclick="openModal('faq-modal')">What equipment do I need for class?</td>
+              <td class="text-muted">All equipment is provided at BAM Labs. We recommend bringing a…</td>
+              <td>Classes</td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="openModal('faq-modal')">Edit</a>
+                  <a onclick="toast('FAQ unpublished')">Unpublish</a>
+                  <a class="danger" onclick="toast('FAQ archived')">Archive</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="drag-handle">⠿</span></td>
+              <td onclick="openModal('faq-modal')">How do I cancel my membership?</td>
+              <td class="text-muted">You can cancel anytime by contacting us at support@bamlabs.com or…</td>
+              <td>Billing</td>
+              <td><span class="badge badge-draft">Draft</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="openModal('faq-modal')">Edit</a>
+                  <a onclick="toast('FAQ published')">Publish</a>
+                  <a class="danger" onclick="toast('FAQ archived')">Archive</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="drag-handle">⠿</span></td>
+              <td onclick="openModal('faq-modal')">Can I switch class types mid-month?</td>
+              <td class="text-muted">Yes! Your membership gives you access to all class types…</td>
+              <td>Classes</td>
+              <td><span class="badge badge-published">Published</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="openModal('faq-modal')">Edit</a>
+                  <a onclick="toast('FAQ unpublished')">Unpublish</a>
+                  <a class="danger" onclick="toast('FAQ archived')">Archive</a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- FEEDBACK 4.0                             -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-feedback">
+      <div class="page-header">
+        <h1>Feedback</h1>
+        <div class="page-header-actions">
+          <button class="btn btn-outline" onclick="openModal('filter-modal')">☰ Filter</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <input type="text" placeholder="Search by keyword">
+          <button class="btn btn-primary">Search</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date <span class="sort-icon">⇅</span></th>
+              <th>Coach</th>
+              <th>Class Type</th>
+              <th>Class Date</th>
+              <th>Preview</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td onclick="openFeedbackDetail()" style="font-weight:600">03/15/2026</td>
+              <td>Sarah Chen</td>
+              <td>Push</td>
+              <td>03/15/2026 9:00 AM</td>
+              <td class="text-muted">Great energy today. Client #42 struggled with overhead press form…</td>
+              <td><span class="badge badge-new">New</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="toast('Marked as reviewed')">Mark as Reviewed</a>
+                  <a onclick="showPage('coach-detail')">View Coach Profile</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="openFeedbackDetail()" style="font-weight:600">03/14/2026</td>
+              <td>James Rodriguez</td>
+              <td>Pull</td>
+              <td>03/14/2026 7:00 PM</td>
+              <td class="text-muted">Class went well overall. Two new members showed up, need to track…</td>
+              <td><span class="badge badge-new">New</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="toast('Marked as reviewed')">Mark as Reviewed</a>
+                  <a onclick="showPage('coach-detail')">View Coach Profile</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="openFeedbackDetail()" style="font-weight:600">03/13/2026</td>
+              <td>Sarah Chen</td>
+              <td>Legs</td>
+              <td>03/13/2026 9:00 AM</td>
+              <td class="text-muted">Ran the new leg routine. Hypertrophy focus was good, clients liked…</td>
+              <td><span class="badge badge-reviewed">Reviewed</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="toast('Marked as new')">Mark as New</a>
+                  <a onclick="showPage('coach-detail')">View Coach Profile</a>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td onclick="openFeedbackDetail()" style="font-weight:600">03/12/2026</td>
+              <td>Derek Williams</td>
+              <td>Full Body</td>
+              <td>03/12/2026 6:00 PM</td>
+              <td class="text-muted">Equipment issue with cable machine #3 again. Reported to maintenance…</td>
+              <td><span class="badge badge-reviewed">Reviewed</span></td>
+              <td class="row-actions-cell">
+                <button class="row-action-btn" onclick="event.stopPropagation(); toggleCtx(this)">⋯</button>
+                <div class="context-menu">
+                  <a onclick="toast('Marked as new')">Mark as New</a>
+                  <a onclick="showPage('coach-detail')">View Coach Profile</a>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span>Showing 4 of 156</span>
+        <div class="pagination-pages">
+          <button>←</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <span class="ellipsis">..</span>
+          <button>16</button>
+          <button>→</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ──────────────────────────────────────── -->
+    <!-- SETTINGS 5.0                             -->
+    <!-- ──────────────────────────────────────── -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <h1>Settings</h1>
+      </div>
+
+      <div style="max-width: 640px;">
+        <div class="detail-section" style="border-top:none;padding-top:0">
+          <h2>Profile Management</h2>
+          <div style="text-align:left; margin-bottom: 20px;">
+            <div class="profile-avatar" style="width:72px;height:72px;font-size:24px;cursor:pointer;display:inline-flex" title="Change photo">👤</div>
+            <div class="mt-8"><button class="btn btn-ghost btn-sm">Change Photo</button></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" class="form-input" value="Miguel Berlanga">
+            </div>
+            <div class="form-group">
+              <label>Email <span class="text-muted">(read-only)</span></label>
+              <input type="email" class="form-input" value="admin@bamlabs.com" disabled style="background:var(--bg-muted)">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" class="form-input" value="555-123-4567">
+            </div>
+            <div class="form-group">
+              <label>Role <span class="text-muted">(read-only)</span></label>
+              <input type="text" class="form-input" value="Admin" disabled style="background:var(--bg-muted)">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="toast('Profile saved')">Save Changes</button>
+        </div>
+
+        <div class="detail-section">
+          <h2>Change Password</h2>
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" class="form-input" placeholder="••••••••">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" class="form-input" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label>Confirm New Password</label>
+              <input type="password" class="form-input" placeholder="••••••••">
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="toast('Password updated')">Update Password</button>
+        </div>
+
+        <div class="detail-section">
+          <h2>Notification Preferences</h2>
+          <div class="toggle-wrap">
+            <span class="toggle-label">New Feedback Submitted</span>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-wrap">
+            <span class="toggle-label">New User Invitation Accepted</span>
+            <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+          </div>
+          <div class="toggle-wrap">
+            <span class="toggle-label">Routine Published</span>
+            <button class="toggle" onclick="this.classList.toggle('on')"></button>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h2>Studio Settings</h2>
+          <div class="form-group">
+            <label>Studio Name</label>
+            <input type="text" class="form-input" value="BAM New York">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" class="form-input" value="123 Fitness Ave, New York, NY">
+            </div>
+            <div class="form-group">
+              <label>Timezone</label>
+              <select class="form-select">
+                <option selected>Eastern Time (ET)</option>
+                <option>Central Time (CT)</option>
+                <option>Mountain Time (MT)</option>
+                <option>Pacific Time (PT)</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="toast('Studio settings saved')">Save Settings</button>
+        </div>
+
+        <div class="detail-section">
+          <button class="btn btn-outline" style="color:#dc2626;border-color:#dc2626" onclick="openModal('signout-modal')">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app-shell -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- MODALS                                                  -->
+<!-- ════════════════════════════════════════════════════════ -->
+
+<!-- Invite User 1.1.0 -->
+<div class="modal-overlay" id="invite-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Invite User</h2>
+      <button class="modal-close" onclick="closeModal('invite-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" class="form-input" placeholder="coach@example.com">
+      </div>
+      <div class="form-group">
+        <label>Role</label>
+        <select class="form-select">
+          <option>Coach</option>
+          <option>Head Coach</option>
+          <option>Admin</option>
+        </select>
+      </div>
+      <div style="background:var(--bg-muted);border-radius:var(--radius);padding:16px;margin-top:8px">
+        <h3 style="margin-bottom:8px">Email Template Preview</h3>
+        <p class="text-sm text-muted">The invited user will receive an email with:</p>
+        <ul class="text-sm text-muted" style="margin:8px 0 0 16px">
+          <li>Explanation of the invitation</li>
+          <li>Link to sign up via web (admin) or mobile app (coach)</li>
+          <li>Instructions on how to get started</li>
+          <li>Contact support line</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('invite-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('invite-modal'); toast('Invitation sent!')">Send Invite</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise Editor 2.1.1.1 -->
+<div class="modal-overlay" id="exercise-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Edit Exercise</h2>
+      <button class="modal-close" onclick="closeModal('exercise-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Exercise Name *</label>
+        <input type="text" class="form-input" value="Barbell Bench Press">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sets</label>
+          <input type="number" class="form-input" value="4">
+        </div>
+        <div class="form-group">
+          <label>Reps</label>
+          <input type="text" class="form-input" value="8-10" placeholder="e.g. 8-12">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Recommended Weight</label>
+          <input type="number" class="form-input" value="135" placeholder="Optional">
+        </div>
+        <div class="form-group">
+          <label>Unit</label>
+          <select class="form-select">
+            <option selected>lbs</option>
+            <option>kg</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Coach Cues</label>
+        <textarea class="form-textarea" placeholder="Coaching notes for this exercise">Drive feet into floor, arch back slightly. Grip just outside shoulder width.</textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('exercise-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('exercise-modal'); toast('Exercise saved')">Save Exercise</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ Editor 3.1 -->
+<div class="modal-overlay" id="faq-modal">
+  <div class="modal" style="width:600px">
+    <div class="modal-header">
+      <h2>Edit FAQ</h2>
+      <button class="modal-close" onclick="closeModal('faq-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Question *</label>
+        <input type="text" class="form-input" value="How do I reset my password?">
+      </div>
+      <div class="form-group">
+        <label>Answer</label>
+        <div class="rich-text-placeholder">
+          <div class="rich-text-toolbar">
+            <button><b>B</b></button>
+            <button><i>I</i></button>
+            <button><u>U</u></button>
+            <button>🔗</button>
+            <button>•</button>
+          </div>
+          <div class="rich-text-body" contenteditable="true">
+            To reset your password, go to the login screen and tap "Forgot Password". Enter your email address and we'll send you a reset link. The link expires after 24 hours.
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select class="form-select">
+            <option selected>Account</option>
+            <option>Classes</option>
+            <option>Billing</option>
+            <option>+ Create new category</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-select">
+            <option>Draft</option>
+            <option selected>Published</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" style="color:#dc2626;border-color:#dc2626;margin-right:auto" onclick="closeModal('faq-modal'); toast('FAQ archived')">Archive</button>
+      <button class="btn btn-outline" onclick="closeModal('faq-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('faq-modal'); toast('FAQ saved')">Save FAQ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Publish Confirmation -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h2>Publish Routine?</h2>
+      <button class="modal-close" onclick="closeModal('publish-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p>This will make the routine available to all coaches. Are you sure you want to publish?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('publish-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('publish-modal'); toast('Routine published!')">Confirm Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="modal-overlay" id="confirm-delete-modal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h2>Confirm Deletion</h2>
+      <button class="modal-close" onclick="closeModal('confirm-delete-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p>This action cannot be undone. Are you sure you want to proceed?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirm-delete-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="closeModal('confirm-delete-modal'); toast('Item deleted')">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sign Out Confirmation -->
+<div class="modal-overlay" id="signout-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <h2>Sign Out</h2>
+      <button class="modal-close" onclick="closeModal('signout-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to sign out?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('signout-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('signout-modal'); signOut()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Modal (generic placeholder) -->
+<div class="modal-overlay" id="filter-modal">
+  <div class="modal" style="width:420px">
+    <div class="modal-header">
+      <h2>Filters</h2>
+      <button class="modal-close" onclick="closeModal('filter-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Role</label>
+        <select class="form-select">
+          <option selected>All</option>
+          <option>Admin</option>
+          <option>Head Coach</option>
+          <option>Coach</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select class="form-select">
+          <option selected>All</option>
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sort By</label>
+        <select class="form-select">
+          <option>Recent Check-in</option>
+          <option>Classes Completed</option>
+          <option>Classes Missed</option>
+          <option>Name (A-Z)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('filter-modal')">Clear All</button>
+      <button class="btn btn-primary" onclick="closeModal('filter-modal'); toast('Filters applied')">Apply Filters</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ──────────────────────────────────────── -->
+<!-- FEEDBACK DETAIL 4.1 (Drawer)             -->
+<!-- ──────────────────────────────────────── -->
+<div class="drawer-overlay" id="feedback-drawer-overlay" onclick="closeFeedbackDetail()"></div>
+<div class="drawer" id="feedback-drawer">
+  <div class="drawer-header">
+    <div>
+      <h2 style="margin-bottom:4px">Feedback Detail</h2>
+      <div class="flex items-center gap-8">
+        <span class="text-muted text-sm">March 15, 2026</span>
+        <span class="badge badge-new">New</span>
+      </div>
+    </div>
+    <button class="modal-close" onclick="closeFeedbackDetail()">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="mb-16">
+      <h3>Feedback</h3>
+      <p style="font-size:14px;line-height:1.7;color:var(--ink-light)">
+        Great energy today. Client #42 struggled with overhead press form — I gave her a cue to brace her core more and it clicked after the second set. Two newer clients in stations 4 and 7 seemed hesitant on the bench press. Might want to flag them for extra attention next Push day. Overall the routine flowed well, timing was tight but manageable.
+      </p>
+    </div>
+
+    <hr class="divider">
+
+    <div class="mb-16">
+      <h3>Class Info</h3>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Class Name</label>
+          <span>Push Day — Morning</span>
+        </div>
+        <div class="detail-item">
+          <label>Date & Time</label>
+          <span>March 15, 2026 · 9:00 AM</span>
+        </div>
+        <div class="detail-item">
+          <label>Routine Used</label>
+          <span>Push Day A</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="mb-16">
+      <h3>Coach Info</h3>
+      <div class="flex items-center gap-8">
+        <div class="profile-avatar" style="width:36px;height:36px;font-size:14px">👤</div>
+        <div>
+          <div style="font-weight:600">Sarah Chen</div>
+          <a class="text-sm" style="color:var(--ink);cursor:pointer" onclick="closeFeedbackDetail(); showPage('coach-detail')">View Coach Profile →</a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="flex gap-8">
+      <button class="btn btn-primary" onclick="toast('Marked as reviewed'); closeFeedbackDetail()">Mark as Reviewed</button>
+      <button class="btn btn-outline" onclick="closeFeedbackDetail(); showPage('coach-detail')">View Coach Profile</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="toast" id="toast-el"></div>
+
+
+<script>
+  // ── Navigation ──
+  const pageMap = {
+    'users': 'page-users',
+    'coach-detail': 'page-coach-detail',
+    'admin-detail': 'page-admin-detail',
+    'routines': 'page-routines',
+    'routine-detail': 'page-routine-detail',
+    'routine-editor': 'page-routine-editor',
+    'faqs': 'page-faqs',
+    'feedback': 'page-feedback',
+    'settings': 'page-settings',
+  };
+
+  const sectionMap = {
+    'users': 'users',
+    'coach-detail': 'users',
+    'admin-detail': 'users',
+    'routines': 'routines',
+    'routine-detail': 'routines',
+    'routine-editor': 'routines',
+    'faqs': 'faqs',
+    'feedback': 'feedback',
+    'settings': 'settings',
+  };
+
+  function showPage(key) {
+    closeAllDropdowns();
+    closeAllCtx();
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById(pageMap[key]);
+    if (el) el.classList.add('active');
+
+    const section = sectionMap[key];
+    document.querySelectorAll('.sidebar-nav a').forEach(a => {
+      a.classList.toggle('active', a.dataset.nav === section);
+    });
+  }
+
+  function navigate(section) {
+    showPage(section);
+  }
+
+  document.querySelectorAll('.sidebar-nav a').forEach(a => {
+    a.addEventListener('click', () => showPage(a.dataset.nav));
+  });
+
+  // ── Auth Flow ──
+  function showAuthStep(step) {
+    document.querySelectorAll('.auth-card').forEach(c => c.classList.add('hidden'));
+    document.getElementById('auth-step-' + step).classList.remove('hidden');
+  }
+
+  function enterApp() {
+    document.getElementById('auth-screen').classList.remove('active');
+    document.getElementById('app-shell').classList.remove('hidden');
+  }
+
+  function signOut() {
+    document.getElementById('app-shell').classList.add('hidden');
+    document.getElementById('auth-screen').classList.add('active');
+    showAuthStep('email');
+    showPage('users');
+  }
+
+  // ── Modals ──
+  function openModal(id) {
+    closeAllDropdowns();
+    closeAllCtx();
+    document.getElementById(id).classList.add('show');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+  }
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('show');
+    });
+  });
+
+  // ── Context Menus ──
+  function toggleCtx(btn) {
+    const menu = btn.nextElementSibling;
+    const wasOpen = menu.classList.contains('show');
+    closeAllCtx();
+    if (!wasOpen) menu.classList.add('show');
+  }
+  function closeAllCtx() {
+    document.querySelectorAll('.context-menu').forEach(m => m.classList.remove('show'));
+  }
+
+  // ── Dropdowns ──
+  function toggleDropdown(btn) {
+    const menu = btn.nextElementSibling;
+    const wasOpen = menu.classList.contains('show');
+    closeAllDropdowns();
+    if (!wasOpen) menu.classList.add('show');
+  }
+  function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.row-actions-cell')) closeAllCtx();
+    if (!e.target.closest('.dropdown-wrap')) closeAllDropdowns();
+  });
+
+  // ── Feedback Drawer ──
+  function openFeedbackDetail() {
+    document.getElementById('feedback-drawer-overlay').classList.add('show');
+    document.getElementById('feedback-drawer').classList.add('show');
+  }
+  function closeFeedbackDetail() {
+    document.getElementById('feedback-drawer-overlay').classList.remove('show');
+    document.getElementById('feedback-drawer').classList.remove('show');
+  }
+
+  // ── Toast ──
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast-el');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
