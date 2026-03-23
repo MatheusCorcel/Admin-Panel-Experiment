@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BAM Labs — Flag System Prototype</title>
+<style>
+  :root {
+    --bg-primary: #0D0D0D;
+    --bg-secondary: #1A1A1A;
+    --bg-tertiary: #242424;
+    --bg-elevated: #2A2A2A;
+    --text-primary: #F5F5F5;
+    --text-secondary: #A0A0A0;
+    --text-muted: #666;
+    --accent: #C9A96E;
+    --accent-dim: rgba(201,169,110,0.15);
+    --accent-hover: #D4B87E;
+    --border: #333;
+    --red: #E85454;
+    --red-dim: rgba(232,84,84,0.15);
+    --green: #4CAF50;
+    --green-dim: rgba(76,175,80,0.15);
+    --blue: #5B9BD5;
+    --blue-dim: rgba(91,155,213,0.15);
+    --orange: #F5A623;
+    --orange-dim: rgba(245,166,35,0.15);
+    --purple: #9B7FD4;
+    --purple-dim: rgba(155,127,212,0.15);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Phone frame */
+  .phone-frame {
+    width: 393px;
+    max-width: 100vw;
+    min-height: 100vh;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .header {
+    padding: 56px 20px 16px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  .header-phase {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .header-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .header-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+  .header-timer {
+    font-size: 13px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Phase indicator */
+  .phase-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+  }
+  .phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+  .phase-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+  .phase-dot.completed { background: var(--green); }
+
+  /* Content area */
+  .content {
+    padding: 16px 20px 120px;
+  }
+
+  /* Section */
+  .section { margin-bottom: 24px; }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .section-badge {
+    font-size: 12px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+
+  /* Station map */
+  .station-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .station {
+    background: var(--bg-tertiary);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .station:hover { border-color: var(--accent); background: var(--bg-elevated); }
+  .station.empty { opacity: 0.3; cursor: default; border-style: dashed; }
+  .station.empty:hover { border-color: var(--border); background: var(--bg-tertiary); }
+  .station-number {
+    font-size: 10px;
+    color: var(--text-muted);
+    position: absolute;
+    top: 4px;
+    left: 6px;
+  }
+  .station-name {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .station-flag-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+  .station-flag-badge.has-flags {
+    background: var(--red);
+    color: white;
+  }
+  .station-flag-badge.new-only {
+    background: var(--blue);
+    color: white;
+  }
+  .station-flags-preview {
+    display: flex;
+    gap: 2px;
+    margin-top: 2px;
+  }
+  .flag-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .flag-dot.form_check { background: var(--red); }
+  .flag-dot.scale_down { background: var(--orange); }
+  .flag-dot.scale_up { background: var(--green); }
+  .flag-dot.alternate_needed { background: var(--purple); }
+  .flag-dot.watch { background: var(--blue); }
+  .flag-dot.new_client { background: var(--blue); }
+  .flag-dot.scale_down_trend { background: var(--orange); }
+  .flag-dot.scale_up_trend { background: var(--green); }
+
+  /* Flagged clients list */
+  .flagged-client-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .flagged-client-card:hover { border-color: var(--accent); }
+  .flagged-client-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .flagged-client-name {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .flagged-client-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+  .flag-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .flag-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .flag-tag.form_check { background: var(--red-dim); color: var(--red); }
+  .flag-tag.scale_down { background: var(--orange-dim); color: var(--orange); }
+  .flag-tag.scale_up { background: var(--green-dim); color: var(--green); }
+  .flag-tag.alternate_needed { background: var(--purple-dim); color: var(--purple); }
+  .flag-tag.watch { background: var(--blue-dim); color: var(--blue); }
+  .flag-tag.new_client { background: var(--blue-dim); color: var(--blue); }
+  .flag-tag.scale_down_trend { background: var(--orange-dim); color: var(--orange); }
+  .flag-tag.scale_up_trend { background: var(--green-dim); color: var(--green); }
+
+  /* Exercise card */
+  .exercise-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .exercise-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .exercise-name {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .exercise-detail {
+    font-size: 15px;
+    color: var(--text-secondary);
+  }
+  .exercise-progress {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .exercise-progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .exercise-progress-dot.done { background: var(--accent); }
+  .exercise-progress-dot.current { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+
+  /* Quick flag panel */
+  .quick-flag-panel {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 393px;
+    max-width: 100vw;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    z-index: 300;
+    transition: transform 0.3s ease;
+  }
+  .quick-flag-panel.hidden { transform: translateX(-50%) translateY(100%); }
+  .quick-flag-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .quick-flag-panel-title {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .quick-flag-panel-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .quick-flag-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .quick-flag-btn {
+    background: var(--bg-tertiary);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .quick-flag-btn:hover { border-color: var(--accent); }
+  .quick-flag-btn:active { transform: scale(0.96); }
+  .quick-flag-btn .icon { font-size: 22px; margin-bottom: 6px; display: block; }
+  .quick-flag-btn.form_check:hover { border-color: var(--red); background: var(--red-dim); }
+  .quick-flag-btn.scale_down:hover { border-color: var(--orange); background: var(--orange-dim); }
+  .quick-flag-btn.scale_up:hover { border-color: var(--green); background: var(--green-dim); }
+  .quick-flag-btn.alternate_needed:hover { border-color: var(--purple); background: var(--purple-dim); }
+  .quick-flag-btn.watch:hover { border-color: var(--blue); background: var(--blue-dim); }
+  .quick-flag-exercise {
+    margin-top: 12px;
+    padding: 12px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .quick-flag-exercise:active { transform: scale(0.97); }
+
+  /* Detail modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 400;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    width: 393px;
+    max-width: 100vw;
+    max-height: 85vh;
+    background: var(--bg-secondary);
+    border-radius: 20px 20px 0 0;
+    overflow-y: auto;
+  }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 12px auto 0;
+  }
+  .modal-header {
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: none;
+    color: var(--text-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-body { padding: 16px 20px 32px; }
+  .modal-section { margin-bottom: 20px; }
+  .modal-section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  /* Flag detail row */
+  .flag-detail-row {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .flag-detail-info { flex: 1; }
+  .flag-detail-type {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .flag-detail-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .flag-detail-note {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .flag-detail-actions { display: flex; gap: 6px; }
+
+  /* Buttons */
+  .btn {
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg-primary);
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-danger {
+    background: var(--red-dim);
+    color: var(--red);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .btn-small { padding: 5px 10px; font-size: 12px; }
+
+  /* Bottom bar */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 393px;
+    max-width: 100vw;
+    padding: 16px 20px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    z-index: 200;
+  }
+  .bottom-bar .btn-full {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bottom-bar .btn-full:active { transform: scale(0.98); }
+  .bottom-bar .btn-full.primary {
+    background: var(--accent);
+    color: var(--bg-primary);
+  }
+  .bottom-bar .btn-full.primary:hover { background: var(--accent-hover); }
+
+  /* Station map floating toggle (during class) */
+  .floating-toggle {
+    position: fixed;
+    bottom: 90px;
+    right: calc(50% - 393px/2 + 20px);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg-primary);
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(201,169,110,0.4);
+    z-index: 150;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .floating-toggle:hover { transform: scale(1.08); }
+  .floating-toggle:active { transform: scale(0.95); }
+  .floating-toggle.hidden { display: none; }
+
+  /* Note input */
+  .note-input {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+  }
+  .note-input::placeholder { color: var(--text-muted); }
+  .note-input:focus { outline: none; border-color: var(--accent); }
+
+  /* Resolved flag */
+  .flag-resolved {
+    opacity: 0.5;
+    position: relative;
+  }
+  .flag-resolved::after {
+    content: 'RESOLVED';
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Checklist */
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .checklist-item:hover { background: var(--bg-elevated); }
+  .checklist-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    font-size: 13px;
+  }
+  .checklist-item.checked .checklist-check {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+  .checklist-label { font-size: 15px; }
+
+  /* Feedback textarea */
+  .feedback-textarea {
+    width: 100%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+  }
+  .feedback-textarea::placeholder { color: var(--text-muted); }
+  .feedback-textarea:focus { outline: none; border-color: var(--accent); }
+
+  /* Animations */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+  /* System flag indicator */
+  .system-flag-indicator {
+    font-size: 10px;
+    color: var(--blue);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  @media (max-width: 393px) {
+    .phone-frame { width: 100%; }
+    .bottom-bar, .quick-flag-panel, .floating-toggle { width: 100%; right: auto; }
+    .floating-toggle { right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame" id="app">
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Header -->
+  <div class="header" id="header"></div>
+
+  <!-- Phase dots -->
+  <div class="phase-dots" id="phaseDots"></div>
+
+  <!-- Content -->
+  <div class="content" id="content"></div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar" id="bottomBar"></div>
+
+  <!-- Floating station map toggle (during class) -->
+  <button class="floating-toggle hidden" id="floatingToggle" onclick="toggleStationMap()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+  </button>
+
+  <!-- Quick flag panel -->
+  <div class="quick-flag-panel hidden" id="quickFlagPanel"></div>
+
+  <!-- Modal overlay -->
+  <div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modal" onclick="event.stopPropagation()"></div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// DATA
+// ──────────────────────────────────────────────
+
+const CLASS_TYPE = 'Push';
+const CLASS_TIME = '9:00 AM';
+const ROUTINE_NAME = 'Push Day Alpha';
+
+const EXERCISES = [
+  { id: 'ex1', name: 'Dumbbell Bench Press', sets: 4, reps: 10, weight: '30-40 lbs' },
+  { id: 'ex2', name: 'Overhead Press', sets: 3, reps: 12, weight: '20-30 lbs' },
+  { id: 'ex3', name: 'Incline Dumbbell Fly', sets: 3, reps: 12, weight: '15-25 lbs' },
+  { id: 'ex4', name: 'Tricep Dips', sets: 3, reps: 15, weight: 'Bodyweight' },
+  { id: 'ex5', name: 'Lateral Raises', sets: 3, reps: 15, weight: '10-15 lbs' },
+];
+
+const CLIENTS = [
+  { id: 'c1', name: 'Sarah M.', station: 1, pushClasses: 14, weightTrend: null },
+  { id: 'c2', name: 'Jake T.', station: 2, pushClasses: 3, weightTrend: null },
+  { id: 'c3', name: 'Maria L.', station: 3, pushClasses: 31, weightTrend: 'up' },
+  { id: 'c4', name: 'Tom R.', station: 4, pushClasses: 1, weightTrend: null },
+  { id: 'c5', name: 'Anna K.', station: 5, pushClasses: 42, weightTrend: 'down' },
+  { id: 'c6', name: 'Ben D.', station: 6, pushClasses: 8, weightTrend: 'up' },
+  { id: 'c7', name: 'Lisa P.', station: 7, pushClasses: 18, weightTrend: null },
+  { id: 'c8', name: 'Chris W.', station: 8, pushClasses: 2, weightTrend: null },
+  { id: 'c9', name: 'Emma S.', station: 10, pushClasses: 22, weightTrend: 'down' },
+  { id: 'c10', name: 'Dan F.', station: 12, pushClasses: 11, weightTrend: null },
+];
+
+const TOTAL_STATIONS = 12;
+const NEW_CLIENT_THRESHOLD = 5;
+
+let flags = [
+  // Sarah M. — form issue on bench press, coach noticed elbows flaring
+  { id: 'f1', clientId: 'c1', classType: 'Push', exerciseId: 'ex1', flagType: 'form_check', note: 'Elbows flaring wide at the bottom of each rep. Cued "tuck your elbows" but needs reinforcement next session.', createdBy: 'Coach Mike', createdAt: 'Last Tuesday', status: 'active' },
+
+  // Tom R. — brand new, first class ever, general watch
+  { id: 'f2', clientId: 'c4', classType: 'Push', exerciseId: null, flagType: 'watch', note: 'First class ever. Very little gym experience — spent extra time on setup. Keep close for pacing and form basics.', createdBy: 'Coach Sarah', createdAt: 'Last Thursday', status: 'active' },
+
+  // Maria L. — coach sees she's ready to go heavier on overhead press
+  { id: 'f3', clientId: 'c3', classType: 'Push', exerciseId: 'ex2', flagType: 'scale_up', note: 'Repping 25 lbs easily with clean form. Try 30s next time.', createdBy: 'Coach Sarah', createdAt: 'Last Tuesday', status: 'active' },
+
+  // Maria L. — resolved: was doing cable fly as alternate, now cleared
+  { id: 'f4', clientId: 'c3', classType: 'Push', exerciseId: 'ex3', flagType: 'alternate_needed', note: 'Shoulder tightness on incline fly — did cable fly instead. Cleared by physio on 2/28.', createdBy: 'Coach Mike', createdAt: '3 weeks ago', status: 'resolved' },
+
+  // Anna K. — shoulder concern, general watch
+  { id: 'f5', clientId: 'c5', classType: 'Push', exerciseId: null, flagType: 'watch', note: 'Mentioned right shoulder discomfort after overhead movements last week. Said it feels "tight, not painful." Monitor closely.', createdBy: 'Coach Mike', createdAt: 'Last Thursday', status: 'active' },
+
+  // Anna K. — scale down on overhead press specifically
+  { id: 'f6', clientId: 'c5', classType: 'Push', exerciseId: 'ex2', flagType: 'scale_down', note: 'Was pressing 25s two weeks ago, struggled with 20s on Thursday. Likely related to shoulder issue.', createdBy: 'Coach Mike', createdAt: 'Last Thursday', status: 'active' },
+
+  // Chris W. — new client, form issue on dips
+  { id: 'f7', clientId: 'c8', classType: 'Push', exerciseId: 'ex4', flagType: 'form_check', note: 'Not hitting 90° on dips, cutting range short. May need band-assisted version until strength builds.', createdBy: 'Coach Sarah', createdAt: 'Last Thursday', status: 'active' },
+
+  // Emma S. — needs alternate for bench press due to wrist pain
+  { id: 'f8', clientId: 'c9', classType: 'Push', exerciseId: 'ex1', flagType: 'alternate_needed', note: 'Left wrist pain on dumbbell pressing — try barbell bench or machine chest press instead.', createdBy: 'Coach Mike', createdAt: 'Last Tuesday', status: 'active' },
+];
+
+let sessionFlags = [];
+
+// Coach flag types -- Watch Closely is GENERAL (no exercise), the rest are EXERCISE-SPECIFIC
+const COACH_FLAG_TYPES = {
+  watch:            { label: 'Watch Closely', icon: '⚠', color: 'var(--blue)', general: true },
+  form_check:       { label: 'Form Check', icon: '👁', color: 'var(--red)', general: false },
+  scale_down:       { label: 'Scale Down', icon: '⬇', color: 'var(--orange)', general: false },
+  scale_up:         { label: 'Scale Up', icon: '⬆', color: 'var(--green)', general: false },
+  alternate_needed: { label: 'Alternate Needed', icon: '🔄', color: 'var(--purple)', general: false },
+};
+
+// System flag display meta (not stored, computed at display time)
+const SYSTEM_FLAG_META = {
+  new_client:       { label: 'New Client', icon: '🆕', color: 'var(--blue)' },
+  scale_down_trend: { label: 'Scaling Down', icon: '📉', color: 'var(--orange)' },
+  scale_up_trend:   { label: 'Scaling Up', icon: '📈', color: 'var(--green)' },
+};
+
+// Combined lookup for rendering (coach + system)
+const FLAG_TYPE_META = { ...COACH_FLAG_TYPES };
+
+// ──────────────────────────────────────────────
+// STATE
+// ──────────────────────────────────────────────
+
+let currentPhase = 'pre'; // pre | during | post
+let currentExercise = 0;
+let showStationMap = false;
+let selectedClientId = null;
+let classTimer = 0;
+let timerInterval = null;
+let checklistState = [false, false, false, false];
+
+// ──────────────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────────────
+
+function getSystemFlags(client) {
+  const sysFlags = [];
+  if (client.pushClasses < NEW_CLIENT_THRESHOLD) sysFlags.push('new_client');
+  if (client.weightTrend === 'down') sysFlags.push('scale_down_trend');
+  if (client.weightTrend === 'up') sysFlags.push('scale_up_trend');
+  return sysFlags;
+}
+
+function getActiveFlags(clientId, includeExerciseFilter) {
+  return flags.filter(f =>
+    f.clientId === clientId &&
+    f.classType === CLASS_TYPE &&
+    f.status === 'active' &&
+    (!includeExerciseFilter || f.exerciseId === null || EXERCISES.some(e => e.id === f.exerciseId))
+  );
+}
+
+function getSessionFlags(clientId) {
+  return sessionFlags.filter(f => f.clientId === clientId);
+}
+
+function getAllVisibleFlags(clientId) {
+  return [...getActiveFlags(clientId, true), ...getSessionFlags(clientId).filter(sf => sf.status === 'active')];
+}
+
+function getFlagCount(clientId) {
+  const client = CLIENTS.find(c => c.id === clientId);
+  return getAllVisibleFlags(clientId).length + getSystemFlags(client).length;
+}
+
+function getClientByStation(station) {
+  return CLIENTS.find(c => c.station === station);
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function formatTimer(seconds) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+let nextFlagId = 100;
+function createFlag(clientId, flagType, exerciseId) {
+  const isGeneral = COACH_FLAG_TYPES[flagType]?.general;
+  const flag = {
+    id: 'sf' + (nextFlagId++),
+    clientId,
+    classType: CLASS_TYPE,
+    exerciseId: isGeneral ? null : (exerciseId || null),
+    flagType,
+    note: '',
+    createdBy: 'You',
+    createdAt: 'Just now',
+    status: 'active',
+  };
+  sessionFlags.push(flag);
+  return flag;
+}
+
+// ──────────────────────────────────────────────
+// RENDER
+// ──────────────────────────────────────────────
+
+function render() {
+  renderHeader();
+  renderPhaseDots();
+  renderContent();
+  renderBottomBar();
+
+  const toggle = document.getElementById('floatingToggle');
+  toggle.classList.toggle('hidden', currentPhase !== 'during' || showStationMap);
+}
+
+function renderHeader() {
+  const h = document.getElementById('header');
+  if (currentPhase === 'pre') {
+    h.innerHTML = `
+      <div class="header-phase">Pre-Class</div>
+      <div class="header-top">
+        <div class="header-title">${CLASS_TYPE} — ${CLASS_TIME}</div>
+      </div>
+      <div class="header-subtitle">${ROUTINE_NAME} · ${CLIENTS.length} clients checked in</div>
+    `;
+  } else if (currentPhase === 'during') {
+    h.innerHTML = `
+      <div class="header-phase">During Class</div>
+      <div class="header-top">
+        <div class="header-title">${showStationMap ? 'Station Map' : EXERCISES[currentExercise].name}</div>
+        <div class="header-timer">${formatTimer(classTimer)}</div>
+      </div>
+      <div class="header-subtitle">${showStationMap ? `${CLIENTS.length} stations active` : `Exercise ${currentExercise + 1} of ${EXERCISES.length} · ${EXERCISES[currentExercise].sets}×${EXERCISES[currentExercise].reps}`}</div>
+    `;
+  } else {
+    h.innerHTML = `
+      <div class="header-phase">Post-Class</div>
+      <div class="header-top">
+        <div class="header-title">Class Complete</div>
+        <div class="header-timer">${formatTimer(classTimer)}</div>
+      </div>
+      <div class="header-subtitle">${CLASS_TYPE} — ${ROUTINE_NAME}</div>
+    `;
+  }
+}
+
+function renderPhaseDots() {
+  const phases = ['pre', 'during', 'post'];
+  const idx = phases.indexOf(currentPhase);
+  document.getElementById('phaseDots').innerHTML = phases.map((p, i) =>
+    `<div class="phase-dot ${i === idx ? 'active' : i < idx ? 'completed' : ''}"></div>`
+  ).join('');
+}
+
+function renderContent() {
+  const c = document.getElementById('content');
+  if (currentPhase === 'pre') renderPreClass(c);
+  else if (currentPhase === 'during') renderDuringClass(c);
+  else renderPostClass(c);
+}
+
+// ── PRE-CLASS ──
+
+function renderPreClass(container) {
+  const flaggedClients = CLIENTS.filter(c => getFlagCount(c.id) > 0);
+
+  container.innerHTML = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Station Map</div>
+      </div>
+      ${renderStationGrid()}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Flagged Clients</div>
+        <div class="section-badge">${flaggedClients.length} clients</div>
+      </div>
+      ${flaggedClients.map(c => renderFlaggedClientCard(c)).join('')}
+    </div>
+  `;
+}
+
+function renderStationGrid() {
+  let html = '<div class="station-grid">';
+  for (let i = 1; i <= TOTAL_STATIONS; i++) {
+    const client = getClientByStation(i);
+    if (client) {
+      const count = getFlagCount(client.id);
+      const visibleFlags = getAllVisibleFlags(client.id);
+      const sysFlags = getSystemFlags(client);
+      const hasCoachFlags = visibleFlags.length > 0;
+
+      let badge = '';
+      if (count > 0) {
+        badge = `<div class="station-flag-badge ${hasCoachFlags ? 'has-flags' : 'new-only'}">${count}</div>`;
+      }
+
+      let dots = '';
+      if (visibleFlags.length > 0 || sysFlags.length > 0) {
+        dots = '<div class="station-flags-preview">';
+        sysFlags.forEach(sf => { dots += `<div class="flag-dot ${sf}"></div>`; });
+        visibleFlags.forEach(f => { dots += `<div class="flag-dot ${f.flagType}"></div>`; });
+        dots += '</div>';
+      }
+
+      html += `
+        <div class="station" onclick="onStationClick('${client.id}')">
+          <div class="station-number">${i}</div>
+          ${badge}
+          <div class="station-name">${client.name}</div>
+          ${dots}
+        </div>
+      `;
+    } else {
+      html += `
+        <div class="station empty">
+          <div class="station-number">${i}</div>
+          <div class="station-name" style="color:var(--text-muted)">Empty</div>
+        </div>
+      `;
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderFlaggedClientCard(client) {
+  const clientFlags = getAllVisibleFlags(client.id);
+  const sysFlags = getSystemFlags(client);
+
+  let tags = '';
+  sysFlags.forEach(sf => {
+    const meta = SYSTEM_FLAG_META[sf];
+    tags += `<span class="flag-tag ${sf}">${meta.icon} ${meta.label}</span>`;
+  });
+  clientFlags.forEach(f => {
+    const meta = FLAG_TYPE_META[f.flagType];
+    tags += `<span class="flag-tag ${f.flagType}">${meta.icon} ${meta.label}</span>`;
+  });
+
+  return `
+    <div class="flagged-client-card fade-in" onclick="openFlagDetail('${client.id}')">
+      <div class="flagged-client-row">
+        <div>
+          <div class="flagged-client-name">${client.name}</div>
+          <div class="flagged-client-meta">Station ${client.station} · ${client.pushClasses} ${CLASS_TYPE} classes</div>
+        </div>
+      </div>
+      <div class="flag-tags">${tags}</div>
+    </div>
+  `;
+}
+
+// ── DURING CLASS ──
+
+function renderDuringClass(container) {
+  if (showStationMap) {
+    container.innerHTML = `
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Tap a station to flag</div>
+        </div>
+        ${renderStationGrid()}
+      </div>
+      <div style="text-align:center; margin-top: 8px;">
+        <button class="btn btn-ghost" onclick="toggleStationMap()" style="font-size:14px; padding: 10px 24px;">Back to Exercise</button>
+      </div>
+    `;
+  } else {
+    const ex = EXERCISES[currentExercise];
+    container.innerHTML = `
+      <div class="exercise-card fade-in">
+        <div class="exercise-label">Current Exercise</div>
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-detail">${ex.sets} sets × ${ex.reps} reps · ${ex.weight}</div>
+        <div class="exercise-progress">
+          ${EXERCISES.map((_, i) =>
+            `<div class="exercise-progress-dot ${i < currentExercise ? 'done' : i === currentExercise ? 'current' : ''}"></div>`
+          ).join('')}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">Quick Actions</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-ghost" style="flex:1; padding: 14px;" onclick="toggleStationMap()">
+            <span style="font-size:18px; display:block; margin-bottom:4px;">📍</span>
+            Station Map
+          </button>
+          ${currentExercise < EXERCISES.length - 1 ? `
+            <button class="btn btn-primary" style="flex:1; padding: 14px;" onclick="nextExercise()">
+              <span style="font-size:18px; display:block; margin-bottom:4px;">→</span>
+              Next Exercise
+            </button>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ── POST-CLASS ──
+
+function renderPostClass(container) {
+  const allSessionClientIds = [...new Set(sessionFlags.map(f => f.clientId))];
+  const sessionClients = allSessionClientIds.map(id => CLIENTS.find(c => c.id === id)).filter(Boolean);
+
+  const checklistItems = ['Wipe down all stations', 'Return dumbbells to rack', 'Check floor for personal items', 'Reset station numbers'];
+
+  container.innerHTML = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Cleaning Checklist</div>
+        <div class="section-badge">${checklistState.filter(Boolean).length}/${checklistItems.length}</div>
+      </div>
+      ${checklistItems.map((item, i) => `
+        <div class="checklist-item ${checklistState[i] ? 'checked' : ''}" onclick="toggleChecklist(${i})">
+          <div class="checklist-check">${checklistState[i] ? '✓' : ''}</div>
+          <div class="checklist-label">${item}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Flags Created This Session</div>
+        <div class="section-badge">${sessionFlags.length} flags</div>
+      </div>
+      ${sessionClients.length === 0
+        ? '<div style="text-align:center; color:var(--text-muted); padding: 24px; font-size: 14px;">No flags were created during this class</div>'
+        : sessionClients.map(c => renderPostClassClient(c)).join('')
+      }
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Class Feedback</div>
+      </div>
+      <textarea class="feedback-textarea" placeholder="Any notes about this class? (Optional)"></textarea>
+    </div>
+  `;
+}
+
+function renderPostClassClient(client) {
+  const sFlags = getSessionFlags(client.id);
+  return `
+    <div class="flagged-client-card" onclick="openPostClassFlagDetail('${client.id}')">
+      <div class="flagged-client-name">${client.name}</div>
+      <div class="flagged-client-meta">Station ${client.station}</div>
+      <div class="flag-tags" style="margin-top:8px">
+        ${sFlags.map(f => {
+          const meta = FLAG_TYPE_META[f.flagType];
+          return `<span class="flag-tag ${f.flagType}">${meta.icon} ${meta.label}${f.status === 'resolved' ? ' ✓' : ''}</span>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ── BOTTOM BAR ──
+
+function renderBottomBar() {
+  const bar = document.getElementById('bottomBar');
+  if (currentPhase === 'pre') {
+    bar.innerHTML = `<button class="btn-full primary" onclick="startClass()">Start Workout</button>`;
+  } else if (currentPhase === 'during') {
+    bar.innerHTML = `<button class="btn-full primary" onclick="endClass()">End Workout</button>`;
+  } else {
+    const allChecked = checklistState.every(Boolean);
+    bar.innerHTML = `<button class="btn-full primary" onclick="submitClass()" ${allChecked ? '' : 'disabled style="opacity:0.4;cursor:not-allowed"'}>Submit Class</button>`;
+  }
+}
+
+// ──────────────────────────────────────────────
+// INTERACTIONS
+// ──────────────────────────────────────────────
+
+function onStationClick(clientId) {
+  if (currentPhase === 'during') {
+    openQuickFlagPanel(clientId);
+  } else {
+    openFlagDetail(clientId);
+  }
+}
+
+function openQuickFlagPanel(clientId) {
+  selectedClientId = clientId;
+  const client = CLIENTS.find(c => c.id === clientId);
+  const ex = EXERCISES[currentExercise];
+  const panel = document.getElementById('quickFlagPanel');
+
+  const exerciseSpecific = Object.entries(COACH_FLAG_TYPES).filter(([, m]) => !m.general);
+  const generalFlags = Object.entries(COACH_FLAG_TYPES).filter(([, m]) => m.general);
+
+  panel.innerHTML = `
+    <div class="quick-flag-panel-header">
+      <div class="quick-flag-panel-title">Flag ${client.name}</div>
+      <button class="quick-flag-panel-close" onclick="closeQuickFlag()">✕</button>
+    </div>
+
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:8px; font-weight:600;">
+      Exercise-specific · auto-attaches ${ex.name}
+    </div>
+    <div class="quick-flag-grid">
+      ${exerciseSpecific.map(([type, meta]) => `
+        <button class="quick-flag-btn ${type}" onclick="quickFlag('${clientId}', '${type}', '${ex.id}')">
+          <span class="icon">${meta.icon}</span>
+          ${meta.label}
+        </button>
+      `).join('')}
+    </div>
+
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin:16px 0 8px; font-weight:600;">
+      General
+    </div>
+    ${generalFlags.map(([type, meta]) => `
+      <button class="quick-flag-btn ${type}" onclick="quickFlag('${clientId}', '${type}', null)" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:16px;">
+        <span style="font-size:22px;">${meta.icon}</span>
+        ${meta.label}
+      </button>
+    `).join('')}
+  `;
+  panel.classList.remove('hidden');
+}
+
+function closeQuickFlag() {
+  document.getElementById('quickFlagPanel').classList.add('hidden');
+  selectedClientId = null;
+}
+
+function quickFlag(clientId, flagType, exerciseId) {
+  createFlag(clientId, flagType, exerciseId);
+  const meta = FLAG_TYPE_META[flagType];
+  const client = CLIENTS.find(c => c.id === clientId);
+  showToast(`${meta.icon} ${meta.label} → ${client.name}`);
+  closeQuickFlag();
+  render();
+}
+
+function openFlagDetail(clientId) {
+  const client = CLIENTS.find(c => c.id === clientId);
+  const sysFlags = getSystemFlags(client);
+  const activeFlags = getAllVisibleFlags(clientId);
+  const resolvedFlags = flags.filter(f => f.clientId === clientId && f.classType === CLASS_TYPE && f.status === 'resolved');
+
+  const systemFlagDescriptions = {
+    new_client: `${client.pushClasses} of ${NEW_CLIENT_THRESHOLD} ${CLASS_TYPE} classes completed`,
+    scale_down_trend: `Weights decreased in 3 of the last 4 ${CLASS_TYPE} sessions`,
+    scale_up_trend: `Weights increased in 4 of the last 5 ${CLASS_TYPE} sessions`,
+  };
+
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${client.name}</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">Station ${client.station} · ${client.pushClasses} ${CLASS_TYPE} classes</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      ${sysFlags.length > 0 ? `
+        <div class="modal-section">
+          <div class="modal-section-title">System Flags (${sysFlags.length})</div>
+          ${sysFlags.map(sf => {
+            const meta = SYSTEM_FLAG_META[sf];
+            return `
+              <div class="flag-detail-row" style="border-left: 3px solid ${meta.color};">
+                <div class="flag-detail-info">
+                  <div class="flag-detail-type" style="color:${meta.color};">${meta.icon} ${meta.label}</div>
+                  <div class="flag-detail-meta">${systemFlagDescriptions[sf]}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+
+      ${activeFlags.length > 0 ? `
+        <div class="modal-section">
+          <div class="modal-section-title">Active Coach Flags (${activeFlags.length})</div>
+          ${activeFlags.map(f => renderFlagDetailRow(f, false)).join('')}
+        </div>
+      ` : ''}
+
+      ${resolvedFlags.length > 0 ? `
+        <div class="modal-section">
+          <div class="modal-section-title">History</div>
+          ${resolvedFlags.map(f => renderFlagDetailRow(f, true)).join('')}
+        </div>
+      ` : ''}
+
+      ${sysFlags.length === 0 && activeFlags.length === 0 && resolvedFlags.length === 0 ? `
+        <div style="text-align:center; padding: 32px; color:var(--text-muted);">No flags for this client in ${CLASS_TYPE}</div>
+      ` : ''}
+
+      <div style="margin-top: 16px;">
+        <button class="btn btn-primary" style="width:100%; padding: 14px; font-size: 15px;" onclick="openAddFlagFromDetail('${clientId}')">+ Add New Flag</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function renderFlagDetailRow(flag, isResolved) {
+  const meta = COACH_FLAG_TYPES[flag.flagType] || FLAG_TYPE_META[flag.flagType];
+  const exercise = flag.exerciseId ? EXERCISES.find(e => e.id === flag.exerciseId) : null;
+  const scopeLabel = exercise ? exercise.name : (meta.general ? 'General' : '');
+
+  return `
+    <div class="flag-detail-row ${isResolved ? 'flag-resolved' : ''}" style="border-left: 3px solid ${meta.color};">
+      <div class="flag-detail-info">
+        <div class="flag-detail-type">${meta.icon} ${meta.label}</div>
+        <div class="flag-detail-meta">${flag.createdBy} · ${flag.createdAt}${scopeLabel ? ` · ${scopeLabel}` : ''}</div>
+        ${flag.note ? `<div class="flag-detail-note">"${flag.note}"</div>` : ''}
+      </div>
+      ${!isResolved ? `
+        <div class="flag-detail-actions">
+          <button class="btn btn-small btn-ghost" onclick="resolveFlag('${flag.id}')">Resolve</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function openAddFlagFromDetail(clientId) {
+  closeModal();
+  const client = CLIENTS.find(c => c.id === clientId);
+  const panel = document.getElementById('quickFlagPanel');
+
+  const exerciseSpecific = Object.entries(COACH_FLAG_TYPES).filter(([, m]) => !m.general);
+  const generalFlags = Object.entries(COACH_FLAG_TYPES).filter(([, m]) => m.general);
+
+  panel.innerHTML = `
+    <div class="quick-flag-panel-header">
+      <div class="quick-flag-panel-title">New Flag — ${client.name}</div>
+      <button class="quick-flag-panel-close" onclick="closeQuickFlag()">✕</button>
+    </div>
+
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin-bottom:8px; font-weight:600;">
+      Exercise-specific (select exercise after)
+    </div>
+    <div class="quick-flag-grid">
+      ${exerciseSpecific.map(([type, meta]) => `
+        <button class="quick-flag-btn ${type}" onclick="openExercisePicker('${clientId}', '${type}')">
+          <span class="icon">${meta.icon}</span>
+          ${meta.label}
+        </button>
+      `).join('')}
+    </div>
+
+    <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); margin:16px 0 8px; font-weight:600;">
+      General
+    </div>
+    ${generalFlags.map(([type, meta]) => `
+      <button class="quick-flag-btn ${type}" onclick="addFlagFromDetail('${clientId}', '${type}', null)" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:16px;">
+        <span style="font-size:22px;">${meta.icon}</span>
+        ${meta.label}
+      </button>
+    `).join('')}
+  `;
+  panel.classList.remove('hidden');
+}
+
+function openExercisePicker(clientId, flagType) {
+  const client = CLIENTS.find(c => c.id === clientId);
+  const meta = COACH_FLAG_TYPES[flagType];
+  const panel = document.getElementById('quickFlagPanel');
+
+  panel.innerHTML = `
+    <div class="quick-flag-panel-header">
+      <div class="quick-flag-panel-title">${meta.icon} ${meta.label} — Pick Exercise</div>
+      <button class="quick-flag-panel-close" onclick="closeQuickFlag()">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      ${EXERCISES.map(ex => `
+        <button class="quick-flag-btn" onclick="addFlagFromDetail('${clientId}', '${flagType}', '${ex.id}')" style="width:100%; text-align:left; padding:14px 16px; display:flex; align-items:center; gap:12px;">
+          <span style="font-size:16px;">${meta.icon}</span>
+          <div>
+            <div style="font-size:14px; font-weight:600;">${ex.name}</div>
+            <div style="font-size:12px; color:var(--text-secondary); font-weight:400;">${ex.sets}×${ex.reps} · ${ex.weight}</div>
+          </div>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function addFlagFromDetail(clientId, flagType, exerciseId) {
+  createFlag(clientId, flagType, exerciseId);
+  const meta = COACH_FLAG_TYPES[flagType];
+  showToast(`${meta.icon} Flag added`);
+  closeQuickFlag();
+  render();
+}
+
+function openPostClassFlagDetail(clientId) {
+  const client = CLIENTS.find(c => c.id === clientId);
+  const sFlags = getSessionFlags(clientId);
+
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${client.name}</div>
+        <div style="font-size:13px; color:var(--text-secondary); margin-top:2px;">Station ${client.station} · Flags from this session</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      ${sFlags.map(f => {
+        const meta = FLAG_TYPE_META[f.flagType];
+        const exercise = f.exerciseId ? EXERCISES.find(e => e.id === f.exerciseId) : null;
+        return `
+          <div class="flag-detail-row" style="border-left: 3px solid ${meta.color}; margin-bottom: 16px; flex-direction: column; align-items: stretch;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 10px;">
+              <div>
+                <div class="flag-detail-type">${meta.icon} ${meta.label}</div>
+                <div class="flag-detail-meta">${f.createdAt}${exercise ? ` · ${exercise.name}` : ''}</div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-small btn-danger" onclick="resolveSessionFlag('${f.id}')">
+                  ${f.status === 'resolved' ? '✓ Resolved' : 'Resolve'}
+                </button>
+              </div>
+            </div>
+            <textarea class="note-input" placeholder="Add a note..." oninput="updateFlagNote('${f.id}', this.value)">${f.note}</textarea>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+
+function resolveFlag(flagId) {
+  const f = flags.find(f => f.id === flagId) || sessionFlags.find(f => f.id === flagId);
+  if (f) {
+    f.status = 'resolved';
+    showToast('Flag resolved');
+    closeModal();
+    render();
+  }
+}
+
+function resolveSessionFlag(flagId) {
+  const f = sessionFlags.find(f => f.id === flagId);
+  if (f) {
+    f.status = f.status === 'resolved' ? 'active' : 'resolved';
+    showToast(f.status === 'resolved' ? 'Flag resolved' : 'Flag reactivated');
+    closeModal();
+    render();
+    openPostClassFlagDetail(f.clientId);
+  }
+}
+
+function updateFlagNote(flagId, note) {
+  const f = sessionFlags.find(f => f.id === flagId);
+  if (f) f.note = note;
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.add('hidden');
+}
+
+function toggleStationMap() {
+  showStationMap = !showStationMap;
+  render();
+}
+
+function toggleChecklist(idx) {
+  checklistState[idx] = !checklistState[idx];
+  render();
+}
+
+function nextExercise() {
+  if (currentExercise < EXERCISES.length - 1) {
+    currentExercise++;
+    showToast(`Exercise ${currentExercise + 1} of ${EXERCISES.length}`);
+    render();
+  }
+}
+
+function startClass() {
+  currentPhase = 'during';
+  showStationMap = false;
+  timerInterval = setInterval(() => { classTimer++; renderHeader(); }, 1000);
+  showToast('Workout started');
+  render();
+}
+
+function endClass() {
+  currentPhase = 'post';
+  if (timerInterval) clearInterval(timerInterval);
+  showToast('Workout ended — review flags');
+  render();
+}
+
+function submitClass() {
+  if (!checklistState.every(Boolean)) return;
+  showToast('Class submitted!');
+  setTimeout(() => {
+    currentPhase = 'pre';
+    currentExercise = 0;
+    showStationMap = false;
+    classTimer = 0;
+    sessionFlags = [];
+    checklistState = [false, false, false, false];
+    // Reset demo flags
+    flags = flags.map(f => ({ ...f }));
+    render();
+  }, 1500);
+}
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+
+render();
+</script>
+</body>
+</html>
