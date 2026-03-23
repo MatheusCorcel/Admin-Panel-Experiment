@@ -3,6 +3,7 @@ import {
   Dumbbell,
   HelpCircle,
   MessageSquare,
+  ClipboardCheck,
   Settings,
   Dumbbell as DumbbellIcon,
 } from 'lucide-react'
@@ -44,6 +45,11 @@ export const sidebarData: SidebarData = {
           title: 'Feedback',
           url: '/feedback',
           icon: MessageSquare,
+        },
+        {
+          title: 'Checklists',
+          url: '/checklists',
+          icon: ClipboardCheck,
         },
         {
           title: 'Settings',

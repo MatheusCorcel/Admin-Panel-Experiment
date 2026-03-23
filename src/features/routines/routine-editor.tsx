@@ -355,7 +355,7 @@ export function RoutineEditor() {
         open={publishDialogOpen}
         onOpenChange={setPublishDialogOpen}
         title='Publish Routine'
-        desc={`Are you sure you want to publish "${name}"? This will make it available to all users.`}
+        desc={`Are you sure you want to publish "${name}"? All changes will be pushed to the mobile app.`}
         confirmText='Publish'
         handleConfirm={confirmPublish}
       />

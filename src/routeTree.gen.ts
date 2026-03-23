@@ -24,6 +24,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedRoutinesIndexRouteImport } from './routes/_authenticated/routines/index'
 import { Route as AuthenticatedFeedbackIndexRouteImport } from './routes/_authenticated/feedback/index'
 import { Route as AuthenticatedFaqsIndexRouteImport } from './routes/_authenticated/faqs/index'
+import { Route as AuthenticatedChecklistsIndexRouteImport } from './routes/_authenticated/checklists/index'
 import { Route as AuthenticatedUsersUserIdRouteImport } from './routes/_authenticated/users/$userId'
 import { Route as AuthenticatedSettingsStudioRouteImport } from './routes/_authenticated/settings/studio'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
@@ -112,6 +113,12 @@ const AuthenticatedFaqsIndexRoute = AuthenticatedFaqsIndexRouteImport.update({
   path: '/faqs/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChecklistsIndexRoute =
+  AuthenticatedChecklistsIndexRouteImport.update({
+    id: '/checklists/',
+    path: '/checklists/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUsersUserIdRoute =
   AuthenticatedUsersUserIdRouteImport.update({
     id: '/users/$userId',
@@ -183,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/studio': typeof AuthenticatedSettingsStudioRoute
   '/users/$userId': typeof AuthenticatedUsersUserIdRoute
+  '/checklists/': typeof AuthenticatedChecklistsIndexRoute
   '/faqs/': typeof AuthenticatedFaqsIndexRoute
   '/feedback/': typeof AuthenticatedFeedbackIndexRoute
   '/routines/': typeof AuthenticatedRoutinesIndexRoute
@@ -207,6 +215,7 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/studio': typeof AuthenticatedSettingsStudioRoute
   '/users/$userId': typeof AuthenticatedUsersUserIdRoute
+  '/checklists': typeof AuthenticatedChecklistsIndexRoute
   '/faqs': typeof AuthenticatedFaqsIndexRoute
   '/feedback': typeof AuthenticatedFeedbackIndexRoute
   '/routines': typeof AuthenticatedRoutinesIndexRoute
@@ -234,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/studio': typeof AuthenticatedSettingsStudioRoute
   '/_authenticated/users/$userId': typeof AuthenticatedUsersUserIdRoute
+  '/_authenticated/checklists/': typeof AuthenticatedChecklistsIndexRoute
   '/_authenticated/faqs/': typeof AuthenticatedFaqsIndexRoute
   '/_authenticated/feedback/': typeof AuthenticatedFeedbackIndexRoute
   '/_authenticated/routines/': typeof AuthenticatedRoutinesIndexRoute
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/studio'
     | '/users/$userId'
+    | '/checklists/'
     | '/faqs/'
     | '/feedback/'
     | '/routines/'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/studio'
     | '/users/$userId'
+    | '/checklists'
     | '/faqs'
     | '/feedback'
     | '/routines'
@@ -311,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/studio'
     | '/_authenticated/users/$userId'
+    | '/_authenticated/checklists/'
     | '/_authenticated/faqs/'
     | '/_authenticated/feedback/'
     | '/_authenticated/routines/'
@@ -439,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFaqsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/checklists/': {
+      id: '/_authenticated/checklists/'
+      path: '/checklists'
+      fullPath: '/checklists/'
+      preLoaderRoute: typeof AuthenticatedChecklistsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/$userId': {
       id: '/_authenticated/users/$userId'
       path: '/users/$userId'
@@ -534,6 +554,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedUsersUserIdRoute: typeof AuthenticatedUsersUserIdRoute
+  AuthenticatedChecklistsIndexRoute: typeof AuthenticatedChecklistsIndexRoute
   AuthenticatedFaqsIndexRoute: typeof AuthenticatedFaqsIndexRoute
   AuthenticatedFeedbackIndexRoute: typeof AuthenticatedFeedbackIndexRoute
   AuthenticatedRoutinesIndexRoute: typeof AuthenticatedRoutinesIndexRoute
@@ -547,6 +568,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedUsersUserIdRoute: AuthenticatedUsersUserIdRoute,
+  AuthenticatedChecklistsIndexRoute: AuthenticatedChecklistsIndexRoute,
   AuthenticatedFaqsIndexRoute: AuthenticatedFaqsIndexRoute,
   AuthenticatedFeedbackIndexRoute: AuthenticatedFeedbackIndexRoute,
   AuthenticatedRoutinesIndexRoute: AuthenticatedRoutinesIndexRoute,
