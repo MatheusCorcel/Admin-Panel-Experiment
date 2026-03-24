@@ -1,5 +1,4 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -15,13 +14,7 @@ export const routinesColumns: ColumnDef<Routine>[] = [
       <DataTableColumnHeader column={column} title='Routine Name' />
     ),
     cell: ({ row }) => (
-      <Link
-        to='/routines/$routineId'
-        params={{ routineId: row.original.id }}
-        className='font-medium text-primary hover:underline'
-      >
-        {row.getValue('name')}
-      </Link>
+      <span className='font-medium'>{row.getValue('name')}</span>
     ),
     enableHiding: false,
     filterFn: 'includesString',

@@ -79,9 +79,11 @@ Users
 │   ├── Search
 │   │   └── Search by Name or Email
 │   │
-│   └── Table Actions
-│       ├── Sort by Column
-│       └── Pagination
+│   ├── Table Actions
+│   │   ├── Sort by Column
+│   │   └── Pagination
+│   │
+│   └── Row Click → Coach Details 1.2.0 / Admin Details 1.3.0
 │
 ├── Invite User Modal/Page (1.1.0)
 │   ├── Invite Form
@@ -176,6 +178,8 @@ Routines
 │   ├── Search
 │   │   └── Search by Routine Name
 │   │
+│   ├── Row Click → Routine Details 2.1.0
+│   │
 │   └── Table Row Actions
 │       ├── Edit
 │       ├── Publish / Unpublish
@@ -269,6 +273,8 @@ Routines
     │
     ├── Search by Name
     │
+    ├── Row Click → Exercise Template Editor (2.2.1)
+    │
     └── Row Actions
         ├── Edit → Exercise Template Editor (2.2.1)
         └── Delete (with confirmation)
@@ -314,6 +320,8 @@ FAQs
 │   ├── Sort / Filter
 │   │   ├── Category Filter (if categories enabled)
 │   │   └── Status Filter (All / Draft / Published)
+│   │
+│   ├── Row Click → FAQ Editor 3.1
 │   │
 │   └── List Row Actions
 │       ├── Edit → FAQ Editor 3.1
@@ -641,4 +649,4 @@ Contact Messages
 
 ---
 
-*Version: 3.1 | Last Updated: March 2026*
+*Version: 3.2 | Last Updated: March 2026*

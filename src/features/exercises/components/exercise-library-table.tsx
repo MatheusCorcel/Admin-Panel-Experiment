@@ -23,12 +23,14 @@ import {
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import { muscleGroupLabels, muscleGroups, type ExerciseTemplate } from '../data/schema'
 import { exerciseLibraryColumns as columns } from './exercise-library-columns'
+import { useExerciseLibrary } from './exercise-library-provider'
 
 type ExerciseLibraryTableProps = {
   data: ExerciseTemplate[]
 }
 
 export function ExerciseLibraryTable({ data }: ExerciseLibraryTableProps) {
+  const { setOpen, setCurrentRow } = useExerciseLibrary()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -113,7 +115,11 @@ export function ExerciseLibraryTable({ data }: ExerciseLibraryTableProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className='group/row'
+                  className='group/row cursor-pointer'
+                  onClick={() => {
+                    setCurrentRow(row.original)
+                    setOpen('edit')
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -123,6 +129,11 @@ export function ExerciseLibraryTable({ data }: ExerciseLibraryTableProps) {
                         cell.column.columnDef.meta?.className,
                         cell.column.columnDef.meta?.tdClassName
                       )}
+                      onClick={
+                        cell.column.id === 'actions'
+                          ? (e) => e.stopPropagation()
+                          : undefined
+                      }
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

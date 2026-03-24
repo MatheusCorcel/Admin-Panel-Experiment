@@ -1,9 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { DataTableColumnHeader } from '@/components/data-table'
+import { CopyableEmail } from '@/components/copyable-email'
 import { statusStyles, roles } from '../data/data'
 import { type User } from '../data/schema'
 import { DataTableRowActions } from './data-table-row-actions'
@@ -15,16 +15,8 @@ export const usersColumns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title='Name' />
     ),
     cell: ({ row }) => {
-      const { firstName, lastName, id } = row.original
-      return (
-        <Link
-          to='/users/$userId'
-          params={{ userId: id }}
-          className='font-medium text-primary hover:underline'
-        >
-          {firstName} {lastName}
-        </Link>
-      )
+      const { firstName, lastName } = row.original
+      return <span className='font-medium'>{firstName} {lastName}</span>
     },
     enableHiding: false,
     sortingFn: (a, b) => {
@@ -60,7 +52,10 @@ export const usersColumns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title='Email' />
     ),
     cell: ({ row }) => (
-      <span className='text-muted-foreground'>{row.getValue('email')}</span>
+      <CopyableEmail
+        email={row.getValue('email')}
+        className='text-muted-foreground'
+      />
     ),
   },
   {

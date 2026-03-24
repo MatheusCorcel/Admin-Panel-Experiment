@@ -21,20 +21,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
-import { categories, faqStatuses } from '../data/data'
-import { type Faq } from '../data/schema'
-import { faqsColumns as columns } from './faqs-columns'
-import { useFaqs } from './faqs-provider'
+import {
+  DataTablePagination,
+  DataTableToolbar,
+  DataTableViewOptions,
+} from '@/components/data-table'
+import {
+  messageStatuses,
+  senderTypeOptions,
+  locationOptions,
+} from '../data/data'
+import { type ContactMessage } from '../data/schema'
+import { messagesColumns as columns } from './messages-columns'
+import { useMessages } from './messages-provider'
 
 type DataTableProps = {
-  data: Faq[]
+  data: ContactMessage[]
   search: Record<string, unknown>
   navigate: NavigateFn
 }
 
-export function FaqsTable({ data, search, navigate }: DataTableProps) {
-  const { setOpen, setCurrentRow } = useFaqs()
+export function MessagesTable({ data, search, navigate }: DataTableProps) {
+  const { setOpen, setCurrentRow } = useMessages()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -51,9 +59,10 @@ export function FaqsTable({ data, search, navigate }: DataTableProps) {
     pagination: { defaultPage: 1, defaultPageSize: 10 },
     globalFilter: { enabled: false },
     columnFilters: [
-      { columnId: 'question', searchKey: 'question', type: 'string' },
+      { columnId: 'message', searchKey: 'keyword', type: 'string' },
       { columnId: 'status', searchKey: 'status', type: 'array' },
-      { columnId: 'category', searchKey: 'category', type: 'array' },
+      { columnId: 'senderType', searchKey: 'senderType', type: 'array' },
+      { columnId: 'location', searchKey: 'location', type: 'array' },
     ],
   })
 
@@ -87,23 +96,41 @@ export function FaqsTable({ data, search, navigate }: DataTableProps) {
 
   return (
     <div className='flex flex-1 flex-col gap-4'>
-      <DataTableToolbar
-        table={table}
-        searchPlaceholder='Search by question...'
-        searchKey='question'
-        filters={[
-          {
-            columnId: 'status',
-            title: 'Status',
-            options: faqStatuses.map(({ label, value }) => ({ label, value })),
-          },
-          {
-            columnId: 'category',
-            title: 'Category',
-            options: categories.map(({ label, value }) => ({ label, value })),
-          },
-        ]}
-      />
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between'>
+        <DataTableToolbar
+          table={table}
+          searchPlaceholder='Search by keyword...'
+          searchKey='message'
+          hideViewOptions
+          filters={[
+            {
+              columnId: 'location',
+              title: 'Location',
+              options: locationOptions.map(({ label, value }) => ({
+                label,
+                value,
+              })),
+            },
+            {
+              columnId: 'senderType',
+              title: 'User Type',
+              options: senderTypeOptions.map(({ label, value }) => ({
+                label,
+                value,
+              })),
+            },
+            {
+              columnId: 'status',
+              title: 'Status',
+              options: messageStatuses.map(({ label, value }) => ({
+                label,
+                value,
+              })),
+            },
+          ]}
+        />
+        <DataTableViewOptions table={table} />
+      </div>
       <div className='overflow-hidden rounded-md border'>
         <Table>
           <TableHeader>
@@ -139,7 +166,7 @@ export function FaqsTable({ data, search, navigate }: DataTableProps) {
                   className='group/row cursor-pointer'
                   onClick={() => {
                     setCurrentRow(row.original)
-                    setOpen('edit')
+                    setOpen('detail')
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -170,7 +197,7 @@ export function FaqsTable({ data, search, navigate }: DataTableProps) {
                   colSpan={columns.length}
                   className='h-24 text-center'
                 >
-                  No FAQs found.
+                  No messages found.
                 </TableCell>
               </TableRow>
             )}

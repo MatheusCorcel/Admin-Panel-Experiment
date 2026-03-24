@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { CopyableEmail } from '@/components/copyable-email'
 import {
   Card,
   CardContent,
@@ -151,9 +152,10 @@ export function UserDetail() {
                     {user.status}
                   </Badge>
                 </div>
-                <span className='text-sm text-muted-foreground'>
-                  {user.email}
-                </span>
+                <CopyableEmail
+                  email={user.email}
+                  className='text-sm text-muted-foreground'
+                />
               </div>
             </div>
 
@@ -204,7 +206,12 @@ export function UserDetail() {
           </CardHeader>
           <CardContent>
             <div className='grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2'>
-              <DetailItem label='Email' value={user.email} />
+              <DetailItem label='Email'>
+                <CopyableEmail
+                  email={user.email}
+                  className='text-sm font-medium'
+                />
+              </DetailItem>
               <DetailItem label='Phone' value={user.phone ?? '—'} />
               <DetailItem label='Location' value={user.location} />
               <DetailItem label='Gender' value={user.gender ?? '—'} />
@@ -417,11 +424,19 @@ export function UserDetail() {
   )
 }
 
-function DetailItem({ label, value }: { label: string; value: string }) {
+function DetailItem({
+  label,
+  value,
+  children,
+}: {
+  label: string
+  value?: string
+  children?: React.ReactNode
+}) {
   return (
     <div className='flex flex-col gap-1'>
       <span className='text-sm text-muted-foreground'>{label}</span>
-      <span className='text-sm font-medium'>{value}</span>
+      {children ?? <span className='text-sm font-medium'>{value}</span>}
     </div>
   )
 }

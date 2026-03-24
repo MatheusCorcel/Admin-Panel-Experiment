@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import {
   type SortingState,
   type VisibilityState,
@@ -33,6 +34,7 @@ type DataTableProps = {
 }
 
 export function RoutinesTable({ data, search, navigate }: DataTableProps) {
+  const routerNavigate = useNavigate()
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -135,6 +137,12 @@ export function RoutinesTable({ data, search, navigate }: DataTableProps) {
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   className='group/row cursor-pointer'
+                  onClick={() =>
+                    routerNavigate({
+                      to: '/routines/$routineId',
+                      params: { routineId: row.original.id },
+                    })
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -144,6 +152,11 @@ export function RoutinesTable({ data, search, navigate }: DataTableProps) {
                         cell.column.columnDef.meta?.className,
                         cell.column.columnDef.meta?.tdClassName
                       )}
+                      onClick={
+                        cell.column.id === 'actions'
+                          ? (e) => e.stopPropagation()
+                          : undefined
+                      }
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

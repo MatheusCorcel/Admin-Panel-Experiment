@@ -14,8 +14,11 @@
 4. New feature: Coach Tracker (Monthly/Yearly Sessions)
 5. Decision: Remove Mindbody Sync button
 6. New feature: Early/Late Check-In Stats
-7. Documentation updates
-8. Open questions & decisions needed from client
+7. New feature: Contact Messages inbox
+8. UX improvement: Consistent row-click behavior across all tables
+9. UX improvement: Copy-to-clipboard on email addresses
+10. Documentation updates
+11. Open questions & decisions needed from client
 
 ---
 
@@ -157,16 +160,96 @@ Two new stat cards on the Coach Details Activity Summary that show how many time
 
 ---
 
-## 7. Documentation Updates
+## 7. New Feature: Contact Messages Inbox
 
-The following documents are being updated to reflect these changes:
+### What it is
 
-- **Information Architecture** (`../web-admin-ia.md`) — Class Checklists section, coach early/late check-in stats in Activity Summary, updated Mindbody design principle
-- **User Stories & Tasks** (`../admin-user-stories.md`) — US-1.9 through US-1.12, including Mindbody removal and early/late check-in tracking
+A new top-level section in the admin panel that displays all messages sent by coaches and clients via the "Contact Administrator" form in the BAM Coach App (Help & Support → Contact Support, screen 4.3.2).
+
+### How it works
+
+- **Separate from Feedback** — Contact messages are completely separate from the post-class coach feedback. They live at `/messages` and have their own sidebar entry.
+- **Message sources** — Both coaches and clients can send contact messages. Each row shows who the sender is and their type.
+- **Status tracking** — Messages start as "New" and can be marked as "Read" (similar to how Feedback uses "New"/"Reviewed").
+
+### Admin capabilities
+
+- View all contact messages in a filterable, searchable table
+- Table columns: Location, Name, Email, User Type (Client/Coach badge), Date, Message Preview, Status
+- Filter by Location, User Type, and Status
+- Keyword search in message content
+- Click any row to open a full detail sheet (sidebar panel)
+- Detail sheet shows: full message, sender info (name, type badge, email, location)
+- If the sender is a **coach**: link to their coach profile in the admin panel
+- If the sender is a **client**: display info only (clients are app-only users with no admin profile)
+- Mark as Read from both the detail sheet and the row actions dropdown
+
+### Where it lives
+
+- New top-level sidebar item: "Messages" (between Feedback and Checklists), using a Mail icon
+- URL: `/messages`
+
+### Discussion points for client
+
+- [ ] What email/notification should the admin receive when a new contact message comes in? (Currently only visible by checking the inbox)
+- [ ] Should there be a way to archive or delete messages, or is "Read" status sufficient?
+- [ ] Should client messages include their full profile info from the app (e.g., membership status)?
 
 ---
 
-## 8. Summary of All Changes
+## 8. UX Improvement: Consistent Row-Click Behavior Across All Tables
+
+### What changed
+
+Row-click behavior is now consistent across every table in the admin panel. Clicking any row always leads to the detail or editor view for that item — no more dead zones where only specific cells (like the name link) were interactive.
+
+| Table | Row-click result |
+|-------|-----------------|
+| Users | Navigates to user detail page (`/users/:id`) |
+| Routines | Navigates to routine detail page (`/routines/:id`) |
+| FAQs | Opens the FAQ editor modal |
+| Exercise Library | Opens the exercise template editor modal |
+| Checklists | Opens the checklist bundle editor modal (was already correct) |
+| Feedback | Opens the feedback detail side panel (was already correct) |
+| Contact Messages | Opens the message detail side panel (was already correct) |
+
+The name columns in the Users and Routines tables previously used link-styled text (`<Link>`) that only navigated when clicking the name specifically. These are now plain styled text — the entire row is the interactive target, which is clearer and more predictable.
+
+### Why
+
+Inconsistent row-click behavior creates confusion: users learn the pattern from one table, try it on another, and nothing happens. Standardising this across all seven tables eliminates that friction.
+
+---
+
+## 9. UX Improvement: Copy-to-Clipboard on Email Addresses
+
+### What changed
+
+Email addresses throughout the admin panel now show a small copy icon when the admin hovers over them. Clicking it copies the email to the clipboard and shows a confirmation toast. A "Copied!" tooltip confirms the action.
+
+### Where it applies (global behavior)
+
+- **Users table** — Email column
+- **User Detail page** — Email in profile header and in General Details card
+- **Contact Messages table** — Email column
+- **Contact Messages detail sheet** — Sender email in the Sender Info section
+
+### Why
+
+Admins frequently need to reach out to users (coaches, clients) via email. Making the email address one-click copyable removes friction and avoids manual selection errors.
+
+---
+
+## 10. Documentation Updates
+
+The following documents are being updated to reflect these changes:
+
+- **Information Architecture** (`../web-admin-ia.md`) — Class Checklists section, coach early/late check-in stats in Activity Summary, updated Mindbody design principle, new Contact Messages section (7.0), updated navigation model and access control matrix
+- **User Stories & Tasks** (`../admin-user-stories.md`) — US-1.9 through US-1.12, US-7.1 through US-7.5 (Contact Messages), updated sidebar navigation criteria, new cross-cutting gap G-11
+
+---
+
+## 11. Summary of All Changes
 
 | Area | Change | Type |
 |------|--------|------|
@@ -185,11 +268,17 @@ The following documents are being updated to reflect these changes:
 | Mindbody Sync | Removed "Sync with Mindbody" button from Coach Details | Removal |
 | Early/Late Check-In Stats | "Early Check-Ins" stat in Coach Details Activity Summary | New feature |
 | Early/Late Check-In Stats | "Late Check-Ins" stat in Coach Details Activity Summary | New feature |
-| Documentation | IA and User Stories updated for all changes through US-1.12 | Documentation |
+| Row-click consistency | All 7 tables now navigate/open detail on row click; removed link-only cells from Users and Routines | UX improvement |
+| Contact Messages | New top-level page with table (location, name, email, user type, date, preview, status) | New feature |
+| Contact Messages | Detail sheet with full message and conditional coach profile link | New feature |
+| Contact Messages | Mark as Read action (row actions + detail sheet) | New feature |
+| Sidebar Navigation | New "Messages" entry (Mail icon, between Feedback and Checklists) | UI addition |
+| Email Addresses | Copy-to-clipboard icon on hover, globally across the app | UX improvement |
+| Documentation | IA and User Stories updated for all changes through US-7.5 | Documentation |
 
 ---
 
-## 9. Open Questions for Client
+## 12. Open Questions for Client
 
 1. Pre-Class / Post-Class — are these the only two phases, or should we plan for more?
 2. Multiple active bundles — can a location have more than one active pre-class checklist at a time?
@@ -203,6 +292,9 @@ The following documents are being updated to reflect these changes:
 10. Coach Tracker — is there a minimum session target per month the PM wants to track against?
 11. Early/Late Check-In — what is the threshold for "early" vs. "on time" vs. "late"? (e.g., 5 minutes before start = early)
 12. Early/Late Check-In — should counts be lifetime totals or rolling (e.g., last 30 days)?
+13. Contact Messages — should the admin receive an email/push notification when a new message arrives, or is a visible "New" badge in the inbox sufficient?
+14. Contact Messages — should messages be archivable/deletable, or is "Read" status the only needed state change?
+15. Contact Messages — should client messages include additional app data (e.g., membership status, location) beyond name and email?
 
 ---
 
@@ -227,6 +319,12 @@ The following documents are being updated to reflect these changes:
 >
 > **New Feature: Early/Late Check-In Stats**
 > The Coach Details Activity Summary now includes "Early Check-Ins" and "Late Check-Ins" stat cards, giving admins visibility into punctuality patterns. We need to align on the definition of "early" vs. "late" and whether counts should be lifetime or rolling.
+>
+> **New Feature: Contact Messages Inbox**
+> A new "Messages" page is now in the admin panel (between Feedback and Checklists in the sidebar). It shows all contact messages sent from the BAM app (both coaches and clients), with the sender's name, email, user type, location, date, preview, and status. Clicking a row opens the full message in a side panel. For coaches, there's a direct link to their coach profile. We have a few open questions about notifications and archiving.
+>
+> **UX Improvement: Copy Email on Hover**
+> Email addresses throughout the admin panel now have a one-click copy button that appears on hover. This applies to the Users table, User Detail page, and the new Messages inbox. Hovering shows the copy icon; clicking copies to clipboard and confirms with a toast.
 >
 > **Open Items / Next Steps:**
 > - [Add any decisions made or open items from the meeting]

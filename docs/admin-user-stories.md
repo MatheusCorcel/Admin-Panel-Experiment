@@ -1196,6 +1196,7 @@ The following items were identified during the prototype review and should be ad
 | G-9 | All | All data is static mock data; no backend API is wired anywhere | Critical |
 | G-10 | Exercise Library | Edits and additions to exercise templates persist only for the session; refreshing resets the library to its initial mock state | High |
 | G-11 | Contact Messages | "Mark as Read" shows a toast but does not update the row's status badge in the table | Medium |
+| G-12 | All tables | Row-click behavior was inconsistent across tables — fixed: Users navigates to user detail, Routines navigates to routine detail, FAQs opens the editor modal, Exercise Library opens the editor modal | Resolved ✅ |
 
 ---
 
@@ -1234,5 +1235,7 @@ The following items were identified during the prototype review and should be ad
 - Wire studio timezone throughout the app
 
 ---
+
+**Version:** 2.1 | **Last Updated:** March 2026
 
 *This document reflects the admin panel prototype as of March 2026.*
