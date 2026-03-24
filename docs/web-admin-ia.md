@@ -21,7 +21,9 @@ Web Admin
 │   └── Feedback Detail (4.1)
 ├── Class Checklists (5.0)
 │   └── Checklist Bundle Editor (5.1)
-└── Settings (6.0)
+├── Settings (6.0)
+└── Contact Messages (7.0)
+    └── Message Detail (7.1)
 ```
 
 ---
@@ -447,6 +449,7 @@ Class Checklists
 
 ## 6. Settings (6.0)
 
+
 ```
 Settings
 │
@@ -478,6 +481,61 @@ Settings
 
 ---
 
+## 7. Contact Messages (7.0)
+
+```
+Contact Messages
+│
+├── Messages Inbox
+│   ├── Page Header
+│   │   └── Title: "Contact Messages"
+│   │
+│   ├── Sort / Filter
+│   │   ├── Location Filter (BAM New York / BAM Mexico / BAM Madrid)
+│   │   ├── User Type Filter (Client / Coach)
+│   │   └── Status Filter (New / Read)
+│   │
+│   ├── Search
+│   │   └── Keyword Search in Message Content
+│   │
+│   └── Messages Table
+│       ├── Columns
+│       │   ├── Location
+│       │   ├── Name
+│       │   ├── Email
+│       │   ├── User Type (Client / Coach badge)
+│       │   ├── Date
+│       │   ├── Preview
+│       │   └── Status (New / Read badge)
+│       └── Row Click → Message Detail 7.1
+│
+└── Message Detail (7.1) — Side Panel (Sheet)
+    ├── Header
+    │   ├── Title: "Message Detail"
+    │   ├── Date & Time
+    │   └── Status Badge
+    │
+    ├── Full Message Text
+    │
+    ├── Sender Info
+    │   ├── Name + User Type Badge
+    │   ├── Email
+    │   ├── Location
+    │   └── If Coach: Link to Coach Profile 1.2.0
+    │       (Clients have no admin panel profile)
+    │
+    └── Actions
+        └── Mark as Read
+```
+
+**Notes:**
+- Contact messages originate from the BAM Coach App at Help & Support → Contact Support (4.3.2)
+- Both coaches and clients can send messages; the User Type column distinguishes them
+- Coaches link to their admin panel profile; clients are app-only users with no admin profile page
+- Status tracks admin attention: New (unread) / Read (reviewed)
+
+---
+
 ## Navigation Model
 
 ### Sidebar Navigation
@@ -494,6 +552,8 @@ Settings
 │  ❓ FAQs                 │
 │                          │
 │  💬 Feedback             │
+│                          │
+│  ✉️ Messages             │
 │                          │
 │  📋 Checklists           │
 │                          │
@@ -541,6 +601,8 @@ Settings
 │                                │                                            │
 │                                ├──► Checklists ──► Bundle Editor 5.1       │
 │                                │                                            │
+│                                ├──► Messages ──► Message Detail 7.1        │
+│                                │                                            │
 │                                └──► Settings 6.0                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -561,6 +623,7 @@ Settings
 | Manage FAQs | ✅ | ❌ | ❌ |
 | View Feedback | ✅ | ❌ | ❌ |
 | Manage Class Checklists | ✅ | ❌ | ❌ |
+| View Contact Messages | ✅ | ❌ | ❌ |
 | Settings | ✅ | ❌ | ❌ |
 
 **Note:** Web Admin is admin-only. Coaches and Head Coaches use the Coach App exclusively.
@@ -578,4 +641,4 @@ Settings
 
 ---
 
-*Version: 3.0 | Last Updated: March 2026*
+*Version: 3.1 | Last Updated: March 2026*

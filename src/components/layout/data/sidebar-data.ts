@@ -3,6 +3,7 @@ import {
   Dumbbell,
   HelpCircle,
   MessageSquare,
+  Mail,
   ClipboardCheck,
   Settings,
   Dumbbell as DumbbellIcon,
@@ -45,6 +46,11 @@ export const sidebarData: SidebarData = {
           title: 'Feedback',
           url: '/feedback',
           icon: MessageSquare,
+        },
+        {
+          title: 'Messages',
+          url: '/messages',
+          icon: Mail,
         },
         {
           title: 'Checklists',

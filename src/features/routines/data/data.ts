@@ -9,7 +9,7 @@ import { type Exercise, type RoutineStatus } from './schema'
 /** Helper for table display: get label and details for single or superset */
 export function getExerciseDisplay(exercise: Exercise) {
   if (!exercise) {
-    return { label: '—', name: '—', sets: 0, reps: '—', weight: '—', cues: '—' }
+    return { label: '—', name: '—', sets: 0, reps: '—', rest: '—', cues: '—', category: undefined as string | undefined }
   }
   if (exercise.entryType === 'single') {
     return {
@@ -17,25 +17,27 @@ export function getExerciseDisplay(exercise: Exercise) {
       name: exercise.name ?? '—',
       sets: exercise.sets ?? 0,
       reps: exercise.reps ?? '—',
-      weight: exercise.recommendedWeight ?? '—',
+      rest: exercise.recommendedRest ?? '—',
       cues: exercise.coachCues ?? '—',
+      category: exercise.category,
     }
   }
   const a = exercise.exerciseA
   const b = exercise.exerciseB
   if (!a || !b) {
-    return { label: 'Superset', name: '—', sets: 0, reps: '—', weight: '—', cues: '—' }
+    return { label: 'Superset', name: '—', sets: 0, reps: '—', rest: '—', cues: '—', category: undefined as string | undefined }
   }
   return {
     label: 'Superset',
     name: `${a.name} / ${b.name}`,
     sets: a.sets === b.sets ? a.sets : `${a.sets} / ${b.sets}`,
     reps: a.reps === b.reps ? a.reps : `${a.reps} / ${b.reps}`,
-    weight:
-      a.recommendedWeight === b.recommendedWeight
-        ? a.recommendedWeight
-        : `${a.recommendedWeight} / ${b.recommendedWeight}`,
+    rest:
+      a.recommendedRest === b.recommendedRest
+        ? a.recommendedRest
+        : `${a.recommendedRest} / ${b.recommendedRest}`,
     cues: `${a.coachCues} — ${b.coachCues}`,
+    category: a.category ?? b.category,
   }
 }
 

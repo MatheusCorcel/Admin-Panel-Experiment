@@ -28,13 +28,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CoachCuesEditor } from '@/components/ui/coach-cues-editor'
-import { muscleGroupLabels, muscleGroups, type ExerciseTemplate } from '../data/schema'
+import {
+  muscleGroupLabels,
+  muscleGroups,
+  exerciseTypes,
+  type ExerciseTemplate,
+} from '../data/schema'
 
 const formSchema = z.object({
   name: z.string().min(1, 'Exercise name is required.'),
   muscleGroup: z.enum(muscleGroups, {
     required_error: 'Please select a muscle group.',
+  }),
+  exerciseType: z.enum(exerciseTypes, {
+    required_error: 'Please select an exercise type.',
   }),
   coachCues: z.string().optional(),
 })
@@ -61,6 +70,7 @@ export function ExerciseTemplateDialog({
     defaultValues: {
       name: '',
       muscleGroup: 'chest',
+      exerciseType: 'compound',
       coachCues: '',
     },
   })
@@ -71,12 +81,14 @@ export function ExerciseTemplateDialog({
         form.reset({
           name: exercise.name,
           muscleGroup: exercise.muscleGroup,
+          exerciseType: exercise.exerciseType,
           coachCues: exercise.coachCues,
         })
       } else {
         form.reset({
           name: '',
           muscleGroup: 'chest',
+          exerciseType: 'compound',
           coachCues: '',
         })
       }
@@ -88,6 +100,7 @@ export function ExerciseTemplateDialog({
       id: exercise?.id ?? `et-${crypto.randomUUID().slice(0, 8)}`,
       name: values.name,
       muscleGroup: values.muscleGroup,
+      exerciseType: values.exerciseType,
       coachCues: values.coachCues ?? '',
     })
     form.reset()
@@ -120,6 +133,39 @@ export function ExerciseTemplateDialog({
             onSubmit={form.handleSubmit(onSubmit)}
             className='space-y-4'
           >
+            <FormField
+              control={form.control}
+              name='exerciseType'
+              render={({ field }) => (
+                <FormItem className='flex flex-col items-center'>
+                  <FormControl>
+                    <ToggleGroup
+                      type='single'
+                      value={field.value}
+                      onValueChange={(v) => v && field.onChange(v)}
+                      className='rounded-lg bg-muted p-1'
+                    >
+                      <ToggleGroupItem
+                        value='compound'
+                        aria-label='Compound exercise'
+                        className='w-28 rounded-md hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
+                      >
+                        Compound
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value='isolation'
+                        aria-label='Isolation exercise'
+                        className='w-28 rounded-md hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
+                      >
+                        Isolation
+                      </ToggleGroupItem>
+                    </ToggleGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name='name'

@@ -166,9 +166,10 @@ export function RoutineDetail() {
                 <TableHead className='w-[60px]'>#</TableHead>
                 <TableHead>Exercise Name</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead className='w-[80px]'>Sets</TableHead>
                 <TableHead className='w-[100px]'>Reps</TableHead>
-                <TableHead>Rec. Weight</TableHead>
+                <TableHead>Rec. Rest</TableHead>
                 <TableHead className='min-w-[200px]'>Coach Cues</TableHead>
               </TableRow>
             </TableHeader>
@@ -189,9 +190,18 @@ export function RoutineDetail() {
                           {display.label}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        {display.category ? (
+                          <Badge variant='outline' className='capitalize'>
+                            {display.category}
+                          </Badge>
+                        ) : (
+                          <span className='text-muted-foreground'>—</span>
+                        )}
+                      </TableCell>
                       <TableCell>{display.sets}</TableCell>
                       <TableCell>{display.reps}</TableCell>
-                      <TableCell>{display.weight}</TableCell>
+                      <TableCell>{display.rest}</TableCell>
                       <TableCell className='text-muted-foreground'>
                         {display.cues}
                       </TableCell>
@@ -200,7 +210,7 @@ export function RoutineDetail() {
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className='h-24 text-center'>
+                  <TableCell colSpan={8} className='h-24 text-center'>
                     No exercises in this routine.
                   </TableCell>
                 </TableRow>

@@ -36,7 +36,8 @@ const subExerciseSchema = z.object({
   name: z.string().min(1, 'Exercise name is required.'),
   sets: z.coerce.number().min(1, 'At least 1 set is required.'),
   reps: z.string().min(1, 'Reps is required.'),
-  recommendedWeight: z.string().min(1, 'Recommended weight is required.'),
+  recommendedRest: z.string().min(1, 'Recommended rest is required.'),
+  category: z.enum(['compound', 'isolation']).optional(),
   coachCues: z.string().optional(),
 })
 
@@ -63,7 +64,8 @@ const defaultSingle = {
   name: '',
   sets: 3,
   reps: '',
-  recommendedWeight: '',
+  recommendedRest: '',
+  category: undefined as 'compound' | 'isolation' | undefined,
   coachCues: '',
 }
 
@@ -101,7 +103,8 @@ export function ExerciseEditorDialog({
               name: exercise.name,
               sets: exercise.sets,
               reps: exercise.reps,
-              recommendedWeight: exercise.recommendedWeight,
+              recommendedRest: exercise.recommendedRest,
+              category: exercise.category,
               coachCues: exercise.coachCues,
             },
             superset: defaultSuperset,
@@ -138,7 +141,8 @@ export function ExerciseEditorDialog({
         name: values.single.name,
         sets: values.single.sets,
         reps: values.single.reps,
-        recommendedWeight: values.single.recommendedWeight,
+        recommendedRest: values.single.recommendedRest,
+        category: values.single.category,
         coachCues: values.single.coachCues ?? '',
       })
     } else if (values.entryType === 'superset' && values.superset) {
@@ -264,13 +268,13 @@ export function ExerciseEditorDialog({
                 </div>
                 <FormField
                   control={form.control}
-                  name='single.recommendedWeight'
+                  name='single.recommendedRest'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Recommended Weight</FormLabel>
+                      <FormLabel>Recommended Rest</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder='e.g., 135-185 lbs'
+                          placeholder='e.g., 60-90 sec'
                           {...field}
                         />
                       </FormControl>
@@ -358,12 +362,12 @@ export function ExerciseEditorDialog({
                   </div>
                   <FormField
                     control={form.control}
-                    name='superset.exerciseA.recommendedWeight'
+                    name='superset.exerciseA.recommendedRest'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Recommended Weight</FormLabel>
+                        <FormLabel>Recommended Rest</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., 20-30 lbs' {...field} />
+                          <Input placeholder='e.g., 45-60 sec' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -447,12 +451,12 @@ export function ExerciseEditorDialog({
                   </div>
                   <FormField
                     control={form.control}
-                    name='superset.exerciseB.recommendedWeight'
+                    name='superset.exerciseB.recommendedRest'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Recommended Weight</FormLabel>
+                        <FormLabel>Recommended Rest</FormLabel>
                         <FormControl>
-                          <Input placeholder='e.g., 15-25 lbs' {...field} />
+                          <Input placeholder='e.g., 45-60 sec' {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

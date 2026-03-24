@@ -21,13 +21,17 @@ const exerciseEntryTypeSchema = z.union([
 ])
 export type ExerciseEntryType = z.infer<typeof exerciseEntryTypeSchema>
 
+const exerciseCategorySchema = z.enum(['compound', 'isolation'])
+export type ExerciseCategory = z.infer<typeof exerciseCategorySchema>
+
 // Sub-exercise details (used in superset)
 const subExerciseSchema = z.object({
   name: z.string(),
   sets: z.number(),
   reps: z.string(),
-  recommendedWeight: z.string(),
+  recommendedRest: z.string(),
   coachCues: z.string(),
+  category: exerciseCategorySchema.optional(),
 })
 export type SubExercise = z.infer<typeof subExerciseSchema>
 
@@ -54,8 +58,9 @@ const exerciseSchema = z.discriminatedUnion('entryType', [
     name: z.string(),
     sets: z.number(),
     reps: z.string(),
-    recommendedWeight: z.string(),
+    recommendedRest: z.string(),
     coachCues: z.string(),
+    category: exerciseCategorySchema.optional(),
   }),
   z.object({
     id: z.string(),

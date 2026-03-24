@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { muscleGroupLabels, type ExerciseTemplate } from '../data/schema'
+import { muscleGroupLabels, exerciseTypeLabels, type ExerciseTemplate } from '../data/schema'
 import { useExerciseLibrary } from './exercise-library-provider'
 
 function RowActions({ row }: { row: { original: ExerciseTemplate } }) {
@@ -80,6 +80,22 @@ export const exerciseLibraryColumns: ColumnDef<ExerciseTemplate>[] = [
       return (
         <Badge variant='outline' className='capitalize'>
           {muscleGroupLabels[group] ?? group}
+        </Badge>
+      )
+    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    enableSorting: false,
+  },
+  {
+    accessorKey: 'exerciseType',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Type' />
+    ),
+    cell: ({ row }) => {
+      const type = row.getValue('exerciseType') as keyof typeof exerciseTypeLabels
+      return (
+        <Badge variant='secondary' className='capitalize'>
+          {exerciseTypeLabels[type] ?? type}
         </Badge>
       )
     },

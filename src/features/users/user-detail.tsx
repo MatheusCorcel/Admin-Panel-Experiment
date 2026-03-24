@@ -251,17 +251,25 @@ export function UserDetail() {
                 <StatItem
                   label='Last Check-In'
                   value={
+                    user.lastCheckIn ? format(user.lastCheckIn, 'MMM d, yyyy') : '—'
+                  }
+                  subValue={
                     user.lastCheckIn
-                      ? format(user.lastCheckIn, 'MMM d, yyyy, h:mm a')
-                      : '—'
+                      ? format(user.lastCheckIn, 'h:mm a')
+                      : undefined
                   }
                 />
                 <StatItem
                   label='Last Check-Out'
                   value={
                     user.lastCheckOut
-                      ? format(user.lastCheckOut, 'MMM d, yyyy, h:mm a')
+                      ? format(user.lastCheckOut, 'MMM d, yyyy')
                       : '—'
+                  }
+                  subValue={
+                    user.lastCheckOut
+                      ? format(user.lastCheckOut, 'h:mm a')
+                      : undefined
                   }
                 />
               </div>
@@ -418,11 +426,22 @@ function DetailItem({ label, value }: { label: string; value: string }) {
   )
 }
 
-function StatItem({ label, value }: { label: string; value: string }) {
+function StatItem({
+  label,
+  value,
+  subValue,
+}: {
+  label: string
+  value: string
+  subValue?: string
+}) {
   return (
     <div className='flex flex-col gap-1 rounded-lg border p-4'>
       <span className='text-xs text-muted-foreground'>{label}</span>
-      <span className='text-2xl font-bold'>{value}</span>
+      <span className='text-2xl font-bold leading-tight'>{value}</span>
+      {subValue && (
+        <span className='text-xs text-muted-foreground'>{subValue}</span>
+      )}
     </div>
   )
 }

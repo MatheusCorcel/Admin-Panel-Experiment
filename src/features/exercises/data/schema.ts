@@ -22,10 +22,19 @@ export const muscleGroupLabels: Record<MuscleGroup, string> = {
   full_body: 'Full Body',
 }
 
+export const exerciseTypes = ['compound', 'isolation'] as const
+export type ExerciseType = (typeof exerciseTypes)[number]
+
+export const exerciseTypeLabels: Record<ExerciseType, string> = {
+  compound: 'Compound',
+  isolation: 'Isolation',
+}
+
 export const exerciseTemplateSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Exercise name is required.'),
   muscleGroup: z.enum(muscleGroups),
+  exerciseType: z.enum(exerciseTypes),
   coachCues: z.string(),
 })
 

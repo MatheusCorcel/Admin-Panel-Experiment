@@ -22,6 +22,7 @@ import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRoutinesIndexRouteImport } from './routes/_authenticated/routines/index'
+import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages/index'
 import { Route as AuthenticatedFeedbackIndexRouteImport } from './routes/_authenticated/feedback/index'
 import { Route as AuthenticatedFaqsIndexRouteImport } from './routes/_authenticated/faqs/index'
 import { Route as AuthenticatedChecklistsIndexRouteImport } from './routes/_authenticated/checklists/index'
@@ -100,6 +101,12 @@ const AuthenticatedRoutinesIndexRoute =
   AuthenticatedRoutinesIndexRouteImport.update({
     id: '/routines/',
     path: '/routines/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMessagesIndexRoute =
+  AuthenticatedMessagesIndexRouteImport.update({
+    id: '/messages/',
+    path: '/messages/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedFeedbackIndexRoute =
@@ -193,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/checklists/': typeof AuthenticatedChecklistsIndexRoute
   '/faqs/': typeof AuthenticatedFaqsIndexRoute
   '/feedback/': typeof AuthenticatedFeedbackIndexRoute
+  '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/routines/': typeof AuthenticatedRoutinesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
@@ -218,6 +226,7 @@ export interface FileRoutesByTo {
   '/checklists': typeof AuthenticatedChecklistsIndexRoute
   '/faqs': typeof AuthenticatedFaqsIndexRoute
   '/feedback': typeof AuthenticatedFeedbackIndexRoute
+  '/messages': typeof AuthenticatedMessagesIndexRoute
   '/routines': typeof AuthenticatedRoutinesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
@@ -246,6 +255,7 @@ export interface FileRoutesById {
   '/_authenticated/checklists/': typeof AuthenticatedChecklistsIndexRoute
   '/_authenticated/faqs/': typeof AuthenticatedFaqsIndexRoute
   '/_authenticated/feedback/': typeof AuthenticatedFeedbackIndexRoute
+  '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/routines/': typeof AuthenticatedRoutinesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/checklists/'
     | '/faqs/'
     | '/feedback/'
+    | '/messages/'
     | '/routines/'
     | '/settings/'
     | '/users/'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/checklists'
     | '/faqs'
     | '/feedback'
+    | '/messages'
     | '/routines'
     | '/settings'
     | '/users'
@@ -326,6 +338,7 @@ export interface FileRouteTypes {
     | '/_authenticated/checklists/'
     | '/_authenticated/faqs/'
     | '/_authenticated/feedback/'
+    | '/_authenticated/messages/'
     | '/_authenticated/routines/'
     | '/_authenticated/settings/'
     | '/_authenticated/users/'
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/routines'
       fullPath: '/routines/'
       preLoaderRoute: typeof AuthenticatedRoutinesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messages/': {
+      id: '/_authenticated/messages/'
+      path: '/messages'
+      fullPath: '/messages/'
+      preLoaderRoute: typeof AuthenticatedMessagesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/feedback/': {
@@ -557,6 +577,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChecklistsIndexRoute: typeof AuthenticatedChecklistsIndexRoute
   AuthenticatedFaqsIndexRoute: typeof AuthenticatedFaqsIndexRoute
   AuthenticatedFeedbackIndexRoute: typeof AuthenticatedFeedbackIndexRoute
+  AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
   AuthenticatedRoutinesIndexRoute: typeof AuthenticatedRoutinesIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedRoutinesRoutineIdEditRoute: typeof AuthenticatedRoutinesRoutineIdEditRoute
@@ -571,6 +592,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChecklistsIndexRoute: AuthenticatedChecklistsIndexRoute,
   AuthenticatedFaqsIndexRoute: AuthenticatedFaqsIndexRoute,
   AuthenticatedFeedbackIndexRoute: AuthenticatedFeedbackIndexRoute,
+  AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
   AuthenticatedRoutinesIndexRoute: AuthenticatedRoutinesIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedRoutinesRoutineIdEditRoute:

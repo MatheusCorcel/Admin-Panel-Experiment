@@ -24,6 +24,7 @@
 7. [Feedback](#4-feedback)
 8. [Class Checklists](#5-class-checklists)
 9. [Settings](#6-settings)
+10. [Contact Messages](#7-contact-messages)
 
 ---
 
@@ -76,7 +77,7 @@
 > As an admin, I want a persistent sidebar so that I can navigate between all major sections of the app.
 
 **Acceptance Criteria**
-- Sidebar shows: Users, Routines, FAQs, Feedback, Settings
+- Sidebar shows: Users, Routines, FAQs, Feedback, Messages, Checklists, Settings
 - Active item is highlighted
 - Sidebar is collapsible on smaller screens
 
@@ -1084,6 +1085,100 @@
 
 ---
 
+## 7. Contact Messages
+
+### Epic: Contact Message Inbox
+
+---
+
+**US-7.1 — View Contact Messages Inbox** ✅
+
+> As an admin, I want to see all contact messages from coaches and clients in a table so that I can review and respond to them.
+
+**Acceptance Criteria**
+- Table shows: Location, Name, Email, User Type, Date, Preview, Status
+- Pagination with URL state
+- Separate page from Class Feedback
+
+**Tasks**
+- [x] Contact Messages page at `/messages`
+- [x] Sidebar navigation entry with Mail icon (between Feedback and Checklists)
+- [x] Table with all columns and pagination
+
+---
+
+**US-7.2 — Filter & Search Contact Messages** ✅
+
+> As an admin, I want to filter and search contact messages so that I can find specific submissions.
+
+**Acceptance Criteria**
+- Filter by Location (BAM New York / BAM Mexico / BAM Madrid)
+- Filter by User Type (Client / Coach)
+- Filter by Status (New / Read)
+- Keyword search in message content
+- Filters reflected in URL
+
+**Tasks**
+- [x] Location faceted filter
+- [x] User Type faceted filter
+- [x] Status faceted filter
+- [x] Keyword text search
+- [x] URL-synced filter state
+
+---
+
+**US-7.3 — View Message Detail** ✅
+
+> As an admin, I want to click on a message row to see its full content and sender details so that I can understand what the person is asking.
+
+**Acceptance Criteria**
+- Clicking any row opens a side panel (Sheet)
+- Sheet shows: Date, Status badge, Full message text
+- Sender Info: Name, User Type badge, Email, Location
+- If sender is a coach: "View Coach Profile →" link to `/users/:senderId`
+- If sender is a client: display info only (no profile link — clients are app-only)
+- "Mark as Read" action button in the sheet
+
+**Tasks**
+- [x] Side panel Sheet opens on row click
+- [x] Full message content display
+- [x] Sender Info section with User Type badge and Email
+- [x] Conditional "View Coach Profile" link for coach senders
+- [x] "Mark as Read" button with toast
+
+---
+
+**US-7.4 — View Message Detail from Row Menu** ✅
+
+> As an admin, I want a "View Details" option in the row actions menu so that I can open the detail panel without clicking the row.
+
+**Acceptance Criteria**
+- "View Details" option in the row actions dropdown
+- Opens the same detail sheet as clicking the row
+
+**Tasks**
+- [x] "View Details" in row actions dropdown
+- [x] Opens message detail sheet
+
+---
+
+**US-7.5 — Mark Message as Read** 🟡
+
+> As an admin, I want to mark a message as read so that I can track which messages I have already reviewed.
+
+**Acceptance Criteria**
+- "Mark as Read" available in the row actions menu and in the detail sheet
+- Status badge changes from "New" to "Read"
+- The change is visible in both the table and the sheet
+
+**Tasks**
+- [x] "Mark as Read" in row actions and sheet
+- [x] Toast feedback on action
+- [ ] Mutate message status in state / backend
+- [ ] Update status badge reactively in the table row
+
+---
+
 ## Cross-cutting Gaps & Known Issues
 
 The following items were identified during the prototype review and should be addressed before shipping.
@@ -1100,6 +1195,7 @@ The following items were identified during the prototype review and should be ad
 | G-8 | Users | Sidebar uses `url: '/'` for Users, which works only because the index route redirects to `/users` — should use `/users` directly for clarity | Low |
 | G-9 | All | All data is static mock data; no backend API is wired anywhere | Critical |
 | G-10 | Exercise Library | Edits and additions to exercise templates persist only for the session; refreshing resets the library to its initial mock state | High |
+| G-11 | Contact Messages | "Mark as Read" shows a toast but does not update the row's status badge in the table | Medium |
 
 ---
 
@@ -1113,6 +1209,7 @@ The following items were identified during the prototype review and should be ad
 - FAQ CRUD API
 - Feedback read + status update API
 - Checklist Bundle CRUD API
+- Contact Messages read + status update API
 
 ### P1 — Core Flows
 - US-1.3 Invite User (email delivery)
@@ -1121,6 +1218,7 @@ The following items were identified during the prototype review and should be ad
 - US-EL.3 / EL.4 / EL.5 Exercise template CRUD (persist)
 - US-4.5 Mark Feedback as Reviewed (persist)
 - US-5.3 / US-5.4 / US-5.5 Checklist bundle CRUD (persist)
+- US-7.5 Mark Message as Read (persist)
 
 ### P2 — Completeness
 - US-2.7 Duplicate Routine (implement logic + navigation)

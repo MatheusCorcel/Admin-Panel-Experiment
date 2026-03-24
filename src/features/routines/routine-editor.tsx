@@ -3,12 +3,26 @@ import { Link, getRouteApi } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
   ArrowLeft,
-  ArrowUp,
-  ArrowDown,
+  GripVertical,
   Pencil,
   Plus,
   Trash2,
 } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -40,6 +54,90 @@ import { ExerciseEditorDialog } from './components/exercise-editor-dialog'
 
 const editRoute = getRouteApi('/_authenticated/routines/$routineId/edit')
 
+type SortableExerciseRowProps = {
+  exercise: Exercise
+  onEdit: (exercise: Exercise) => void
+  onRemove: (exercise: Exercise) => void
+}
+
+function SortableExerciseRow({
+  exercise,
+  onEdit,
+  onRemove,
+}: SortableExerciseRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: exercise.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const display = getExerciseDisplay(exercise)
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className='w-[40px]'>
+        <button
+          type='button'
+          className='cursor-grab touch-none text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing'
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical size={16} />
+        </button>
+      </TableCell>
+      <TableCell className='w-[50px] font-medium'>{exercise.order}</TableCell>
+      <TableCell className='font-medium'>{display.name}</TableCell>
+      <TableCell>
+        <Badge variant='secondary'>{display.label}</Badge>
+      </TableCell>
+      <TableCell>
+        {display.category ? (
+          <Badge variant='outline' className='capitalize'>
+            {display.category}
+          </Badge>
+        ) : (
+          <span className='text-muted-foreground'>—</span>
+        )}
+      </TableCell>
+      <TableCell className='w-[80px]'>{display.sets}</TableCell>
+      <TableCell className='w-[100px]'>{display.reps}</TableCell>
+      <TableCell>{display.rest}</TableCell>
+      <TableCell className='min-w-[200px] text-muted-foreground'>
+        {display.cues}
+      </TableCell>
+      <TableCell className='text-right'>
+        <div className='flex items-center justify-end gap-1'>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8'
+            onClick={() => onEdit(exercise)}
+          >
+            <Pencil size={14} />
+          </Button>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8 text-destructive hover:text-destructive'
+            onClick={() => onRemove(exercise)}
+          >
+            <Trash2 size={14} />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
+
 export function RoutineEditor() {
   const { routineId } = editRoute.useParams()
   const isNew = routineId === 'new'
@@ -61,9 +159,10 @@ export function RoutineEditor() {
 
   const badgeColor = statusStyles.get(status)
 
+  const sensors = useSensors(useSensor(PointerSensor))
+
   const reorder = useCallback(
-    (exercises: Exercise[]) =>
-      exercises.map((ex, i) => ({ ...ex, order: i + 1 })),
+    (list: Exercise[]) => list.map((ex, i) => ({ ...ex, order: i + 1 })),
     []
   )
 
@@ -97,21 +196,14 @@ export function RoutineEditor() {
     setRemoveTarget(null)
   }
 
-  const handleMoveUp = (index: number) => {
-    if (index === 0) return
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
     setExercises((prev) => {
-      const updated = [...prev]
-      ;[updated[index - 1], updated[index]] = [updated[index], updated[index - 1]]
-      return reorder(updated)
-    })
-  }
-
-  const handleMoveDown = (index: number) => {
-    setExercises((prev) => {
-      if (index >= prev.length - 1) return prev
-      const updated = [...prev]
-      ;[updated[index], updated[index + 1]] = [updated[index + 1], updated[index]]
-      return reorder(updated)
+      const oldIndex = prev.findIndex((ex) => ex.id === active.id)
+      const newIndex = prev.findIndex((ex) => ex.id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+      return reorder(arrayMove(prev, oldIndex, newIndex))
     })
   }
 
@@ -229,83 +321,42 @@ export function RoutineEditor() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className='w-[60px]'>#</TableHead>
+                <TableHead className='w-[40px]' />
+                <TableHead className='w-[50px]'>#</TableHead>
                 <TableHead>Exercise Name</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead className='w-[80px]'>Sets</TableHead>
                 <TableHead className='w-[100px]'>Reps</TableHead>
-                <TableHead>Rec. Weight</TableHead>
+                <TableHead>Rec. Rest</TableHead>
                 <TableHead className='min-w-[200px]'>Coach Cues</TableHead>
-                <TableHead className='w-[140px] text-right'>Actions</TableHead>
+                <TableHead className='w-[100px] text-right'>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {exercises.length ? (
-                exercises.map((exercise, index) => {
-                  const display = getExerciseDisplay(exercise)
-                  return (
-                    <TableRow key={exercise.id}>
-                      <TableCell className='font-medium'>
-                        {exercise.order}
-                      </TableCell>
-                      <TableCell className='font-medium'>
-                        {display.name}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant='secondary'>
-                          {display.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{display.sets}</TableCell>
-                      <TableCell>{display.reps}</TableCell>
-                      <TableCell>{display.weight}</TableCell>
-                      <TableCell className='text-muted-foreground'>
-                        {display.cues}
-                      </TableCell>
-                    <TableCell className='text-right'>
-                      <div className='flex items-center justify-end gap-1'>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='h-8 w-8'
-                          disabled={index === 0}
-                          onClick={() => handleMoveUp(index)}
-                        >
-                          <ArrowUp size={14} />
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='h-8 w-8'
-                          disabled={index === exercises.length - 1}
-                          onClick={() => handleMoveDown(index)}
-                        >
-                          <ArrowDown size={14} />
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='h-8 w-8'
-                          onClick={() => handleEditExercise(exercise)}
-                        >
-                          <Pencil size={14} />
-                        </Button>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='h-8 w-8 text-destructive hover:text-destructive'
-                          onClick={() => setRemoveTarget(exercise)}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  )
-                })
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={exercises.map((ex) => ex.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {exercises.map((exercise) => (
+                      <SortableExerciseRow
+                        key={exercise.id}
+                        exercise={exercise}
+                        onEdit={handleEditExercise}
+                        onRemove={(ex) => setRemoveTarget(ex)}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className='h-24 text-center'>
+                  <TableCell colSpan={10} className='h-24 text-center'>
                     No exercises yet. Add one to get started.
                   </TableCell>
                 </TableRow>
