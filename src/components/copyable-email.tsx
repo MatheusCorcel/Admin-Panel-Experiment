@@ -32,6 +32,7 @@ export function CopyableEmail({ email, className }: CopyableEmailProps) {
           type='button'
           onClick={handleCopy}
           aria-label='Copy email address'
+          tabIndex={-1}
           className={cn(
             'group/email inline-flex cursor-pointer items-center gap-1 rounded-sm transition-colors hover:text-foreground',
             className
