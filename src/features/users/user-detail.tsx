@@ -252,7 +252,7 @@ export function UserDetail() {
                   label='Last Check-In'
                   value={
                     user.lastCheckIn
-                      ? format(user.lastCheckIn, 'MMM d, yyyy')
+                      ? format(user.lastCheckIn, 'MMM d, yyyy, h:mm a')
                       : '—'
                   }
                 />
@@ -260,7 +260,7 @@ export function UserDetail() {
                   label='Last Check-Out'
                   value={
                     user.lastCheckOut
-                      ? format(user.lastCheckOut, 'MMM d, yyyy')
+                      ? format(user.lastCheckOut, 'MMM d, yyyy, h:mm a')
                       : '—'
                   }
                 />
