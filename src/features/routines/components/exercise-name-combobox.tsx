@@ -15,7 +15,7 @@ import {
   PopoverContent,
 } from '@/components/ui/popover'
 import { exerciseTemplates } from '@/features/exercises/data/exercises'
-import { muscleGroupLabels } from '@/features/exercises/data/schema'
+import { groupByMuscleGroup } from '@/features/exercises/lib/group-by-muscle-group'
 
 type ExerciseNameComboboxProps = {
   value: string
@@ -38,6 +38,7 @@ export function ExerciseNameCombobox({
         ex.name.toLowerCase().includes(value.toLowerCase())
       )
     : []
+  const groups = groupByMuscleGroup(filtered)
 
   const handleSelect = (exerciseName: string) => {
     const match = exerciseTemplates.find((ex) => ex.name === exerciseName)
@@ -77,29 +78,26 @@ export function ExerciseNameCombobox({
         <Command shouldFilter={false}>
           <CommandList>
             <CommandEmpty>No exercises found.</CommandEmpty>
-            <CommandGroup>
-              {filtered.map((ex) => (
-                <CommandItem
-                  key={ex.id}
-                  value={ex.name}
-                  onSelect={handleSelect}
-                  className='cursor-pointer'
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 size-4',
-                      value === ex.name ? 'opacity-100' : 'opacity-0'
-                    )}
-                  />
-                  <div className='flex flex-col'>
+            {groups.map(({ group, label, items }) => (
+              <CommandGroup key={group} heading={label}>
+                {items.map((ex) => (
+                  <CommandItem
+                    key={ex.id}
+                    value={ex.name}
+                    onSelect={handleSelect}
+                    className='cursor-pointer'
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 size-4',
+                        value === ex.name ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
                     <span className='text-sm font-medium'>{ex.name}</span>
-                    <span className='text-xs text-muted-foreground'>
-                      {muscleGroupLabels[ex.muscleGroup]}
-                    </span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
           </CommandList>
         </Command>
       </PopoverContent>

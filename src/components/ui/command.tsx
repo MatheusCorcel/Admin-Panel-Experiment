@@ -83,8 +83,24 @@ function CommandList({
   className,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.List>) {
+  const listRef = React.useRef<HTMLDivElement>(null)
+
+  // Radix's Dialog scroll-lock cancels native wheel-scrolling for anything
+  // outside the dialog's own DOM subtree (Popover content is portaled to
+  // <body>, so it's treated as "outside"). Drive scrollTop manually so this
+  // list still scrolls while nested inside a Dialog.
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = listRef.current
+    if (!el) return
+    e.preventDefault()
+    const max = el.scrollHeight - el.clientHeight
+    el.scrollTop = Math.min(Math.max(el.scrollTop + e.deltaY, 0), max)
+  }
+
   return (
     <CommandPrimitive.List
+      ref={listRef}
+      onWheel={handleWheel}
       data-slot='command-list'
       className={cn(
         'max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto',
@@ -115,7 +131,7 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot='command-group'
       className={cn(
-        'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
+        'overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-10 [&_[cmdk-group-heading]]:-mx-1 [&_[cmdk-group-heading]]:bg-popover [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground',
         className
       )}
       {...props}

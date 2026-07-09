@@ -13,6 +13,7 @@ type ExerciseLibraryDialogsProps = {
 }
 
 export function ExerciseLibraryDialogs({
+  exercises,
   onAdd,
   onEdit,
   onDelete,
@@ -50,6 +51,7 @@ export function ExerciseLibraryDialogs({
           }
         }}
         exercise={open === 'edit' ? currentRow : null}
+        exercises={exercises}
         onSave={handleSave}
       />
 

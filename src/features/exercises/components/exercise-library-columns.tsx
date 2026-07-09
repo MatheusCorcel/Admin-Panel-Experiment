@@ -12,7 +12,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { DataTableColumnHeader } from '@/components/data-table'
-import { muscleGroupLabels, exerciseTypeLabels, type ExerciseTemplate } from '../data/schema'
+import {
+  contributionMuscleLabels,
+  muscleGroupLabels,
+  exerciseTypeLabels,
+  type ExerciseTemplate,
+} from '../data/schema'
 import { useExerciseLibrary } from './exercise-library-provider'
 
 function RowActions({ row }: { row: { original: ExerciseTemplate } }) {
@@ -84,6 +89,38 @@ export const exerciseLibraryColumns: ColumnDef<ExerciseTemplate>[] = [
       )
     },
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    enableSorting: false,
+  },
+  {
+    id: 'muscleContribution',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Muscle Contribution' />
+    ),
+    cell: ({ row }) => {
+      const exercise = row.original
+      if (!exercise.primaryMuscle) {
+        return <span className='text-muted-foreground'>—</span>
+      }
+      const secondary = exercise.secondaryMuscles ?? []
+      return (
+        <div className='flex flex-col gap-0.5'>
+          <Badge variant='outline' className='w-fit'>
+            {contributionMuscleLabels[exercise.primaryMuscle.muscle]} ·{' '}
+            {exercise.primaryMuscle.contribution}
+          </Badge>
+          {secondary.length > 0 && (
+            <span className='text-xs text-muted-foreground'>
+              +{' '}
+              {secondary
+                .map(
+                  (m) => `${contributionMuscleLabels[m.muscle]} ${m.contribution}`
+                )
+                .join(', ')}
+            </span>
+          )}
+        </div>
+      )
+    },
     enableSorting: false,
   },
   {
