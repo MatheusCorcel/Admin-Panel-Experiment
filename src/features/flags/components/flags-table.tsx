@@ -57,12 +57,12 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
       })),
     [data]
   )
-  const coachOptions = useMemo(
+  const currentOwnerOptions = useMemo(
     () =>
       Array.from(
         new Set(
           data
-            .map((f) => f.responsibleCoachName)
+            .map((f) => f.currentOwnerName)
             .filter((name): name is string => Boolean(name))
         )
       ).map((name) => ({ label: name, value: name })),
@@ -94,7 +94,7 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
     columnFilters: [
       { columnId: 'clientSearch', searchKey: 'q', type: 'string' },
       { columnId: 'client', searchKey: 'client', type: 'array' },
-      { columnId: 'coach', searchKey: 'coach', type: 'array' },
+      { columnId: 'currentOwner', searchKey: 'owner', type: 'array' },
       { columnId: 'category', searchKey: 'type', type: 'array' },
       { columnId: 'classType', searchKey: 'classType', type: 'array' },
       { columnId: 'location', searchKey: 'location', type: 'array' },
@@ -153,7 +153,11 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
         }
         filters={[
           { columnId: 'client', title: 'Client', options: clientOptions },
-          { columnId: 'coach', title: 'Coach', options: coachOptions },
+          {
+            columnId: 'currentOwner',
+            title: 'Current Owner',
+            options: currentOwnerOptions,
+          },
           {
             columnId: 'location',
             title: 'Location',

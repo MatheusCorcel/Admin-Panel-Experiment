@@ -40,14 +40,14 @@ export const flagsColumns: ColumnDef<Flag>[] = [
       row.getValue<string>(id).toLowerCase().includes(value.toLowerCase()),
   },
   {
-    id: 'coach',
-    accessorFn: (row) => row.responsibleCoachName ?? '',
+    id: 'currentOwner',
+    accessorFn: (row) => row.currentOwnerName ?? '',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Coach' />
+      <DataTableColumnHeader column={column} title='Current Owner' />
     ),
     cell: ({ row }) => {
-      const { responsibleCoachName } = row.original
-      if (responsibleCoachName) return <span>{responsibleCoachName}</span>
+      const { currentOwnerName } = row.original
+      if (currentOwnerName) return <span>{currentOwnerName}</span>
       return <span className='text-muted-foreground'>—</span>
     },
     filterFn: (row, id, value) => value.includes(row.getValue(id)),

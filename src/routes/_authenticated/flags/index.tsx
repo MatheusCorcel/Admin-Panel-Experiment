@@ -7,7 +7,7 @@ const flagsSearchSchema = z.object({
   pageSize: z.number().optional().catch(10),
   q: z.string().optional().catch(undefined),
   client: z.array(z.string()).optional().catch([]),
-  coach: z.array(z.string()).optional().catch([]),
+  owner: z.array(z.string()).optional().catch([]),
   type: z
     .array(
       z.union([z.literal('coach'), z.literal('system'), z.literal('condition')])

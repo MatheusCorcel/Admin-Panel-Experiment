@@ -185,12 +185,12 @@ export function FlagDetailSheet({
 
         <div className='flex flex-col gap-4 px-4'>
           <div className='grid grid-cols-[auto_1fr] gap-y-2.5 text-sm'>
-            <span className='text-muted-foreground'>Coach</span>
+            <span className='text-muted-foreground'>Current Owner</span>
             <span className='text-right font-medium'>
-              {flag.responsibleCoachName ?? (
+              {flag.currentOwnerName ?? (
                 <span className='text-muted-foreground'>
                   {flag.category === 'condition'
-                    ? '— (no coach is responsible for condition flags)'
+                    ? '— (condition flags have no owner)'
                     : '—'}
                 </span>
               )}
@@ -371,10 +371,10 @@ export function FlagDetailSheet({
               <Separator />
               <p className='pb-4 text-xs text-muted-foreground'>
                 &quot;Created by&quot; always names who actually entered this
-                flag — coach or client — independent of &quot;Coach,&quot; which
-                only tracks who is responsible for resolving it. Condition flags
-                never populate &quot;Coach,&quot; and this flag type has no
-                resolve action.
+                flag — coach or client — independent of &quot;Current
+                Owner,&quot; which only tracks who is responsible for resolving
+                it. Condition flags never populate &quot;Current Owner,&quot;
+                and this flag type has no resolve action.
               </p>
             </>
           )}

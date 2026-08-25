@@ -9,7 +9,7 @@ import { type Flag } from './schema'
 
 const csvColumns = [
   'Client',
-  'Coach',
+  'Current Owner',
   'Created By',
   'Type',
   'Flag',
@@ -32,7 +32,7 @@ function flagToRow(flag: Flag): string[] {
     flag.category
   return [
     flag.client.name,
-    flag.responsibleCoachName ?? '—',
+    flag.currentOwnerName ?? '—',
     flag.createdByName,
     categoryLabel,
     flagNameLabels[flag.flagName],

@@ -100,7 +100,7 @@ const flagSchema = z.object({
   note: z.string().optional(),
   status: flagStatusSchema,
 
-  // Who actually entered the flag — distinct from `responsibleCoachName`
+  // Who actually entered the flag — distinct from `currentOwnerName`
   // below (Gate 1, Q9). A coach can add a Condition flag as a courtesy;
   // that doesn't make them responsible for resolving it.
   createdByRole: flagActorRoleSchema,
@@ -113,13 +113,15 @@ const flagSchema = z.object({
   dueAt: z.coerce.date().nullable(),
   dueInClasses: z.number().nullable(),
 
-  // Who is on the hook to resolve this flag right now. Always null for
-  // Condition flags — no coach is responsible for those (Gate 1, Q7/Q9).
-  // For Coach/System flags this is a derived "current owner": it starts as
-  // the creating coach and auto-transfers to whoever teaches the client's
-  // last class before the flag is due (Gate 1, Q2) — captured here as the
-  // current snapshot, with the transfer itself logged in `auditTrail`.
-  responsibleCoachName: z.string().nullable(),
+  // The coach on the hook to resolve this flag right now — renamed from
+  // "Coach" to "Current Owner" in the UI after user feedback that "Coach"
+  // read as ambiguous on System-category flags. Always null for Condition
+  // flags — nobody is responsible for those (Gate 1, Q7/Q9). For Coach/System
+  // flags this is a derived value: it starts as the creating coach and
+  // auto-transfers to whoever teaches the client's last class before the
+  // flag is due (Gate 1, Q2) — captured here as the current snapshot, with
+  // the transfer itself logged in `auditTrail`.
+  currentOwnerName: z.string().nullable(),
 
   resolvedByName: z.string().nullable(),
   resolvedAt: z.coerce.date().nullable(),
