@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react'
+import { format, parse } from 'date-fns'
 import type {
   ColumnFiltersState,
   OnChangeFn,
   PaginationState,
 } from '@tanstack/react-table'
+
+export type DateRangeFilterValue = { from?: Date; to?: Date }
 
 type SearchRecord = Record<string, unknown>
 
@@ -44,6 +47,13 @@ type UseTableUrlStateParams = {
         type: 'array'
         serialize?: (value: unknown) => unknown
         deserialize?: (value: unknown) => unknown
+      }
+    | {
+        columnId: string
+        type: 'dateRange'
+        // Two URL keys instead of one — a range has a start and an end.
+        searchKeyFrom: string
+        searchKeyTo: string
       }
   >
 }
@@ -89,6 +99,25 @@ export function useTableUrlState(
   const initialColumnFilters: ColumnFiltersState = useMemo(() => {
     const collected: ColumnFiltersState = []
     for (const cfg of columnFiltersCfg) {
+      if (cfg.type === 'dateRange') {
+        const rawFrom = (search as SearchRecord)[cfg.searchKeyFrom]
+        const rawTo = (search as SearchRecord)[cfg.searchKeyTo]
+        // `new Date('yyyy-MM-dd')` parses as UTC midnight, which shifts a
+        // day earlier in any timezone behind UTC — parse in local time.
+        const from =
+          typeof rawFrom === 'string'
+            ? parse(rawFrom, 'yyyy-MM-dd', new Date())
+            : undefined
+        const to =
+          typeof rawTo === 'string'
+            ? parse(rawTo, 'yyyy-MM-dd', new Date())
+            : undefined
+        if (from || to) {
+          collected.push({ id: cfg.columnId, value: { from, to } })
+        }
+        continue
+      }
+
       const raw = (search as SearchRecord)[cfg.searchKey]
       const deserialize = cfg.deserialize ?? ((v: unknown) => v)
       if (cfg.type === 'string') {
@@ -167,6 +196,18 @@ export function useTableUrlState(
 
     for (const cfg of columnFiltersCfg) {
       const found = next.find((f) => f.id === cfg.columnId)
+
+      if (cfg.type === 'dateRange') {
+        const value = (found?.value as DateRangeFilterValue) ?? {}
+        patch[cfg.searchKeyFrom] = value.from
+          ? format(value.from, 'yyyy-MM-dd')
+          : undefined
+        patch[cfg.searchKeyTo] = value.to
+          ? format(value.to, 'yyyy-MM-dd')
+          : undefined
+        continue
+      }
+
       const serialize = cfg.serialize ?? ((v: unknown) => v)
       if (cfg.type === 'string') {
         const value =

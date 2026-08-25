@@ -24,3 +24,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Per-developer Claude Code settings (hooks, permissions) — not shared config
+.claude/settings.local.json

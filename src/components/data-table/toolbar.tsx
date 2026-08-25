@@ -10,6 +10,10 @@ type DataTableToolbarProps<TData> = {
   searchPlaceholder?: string
   searchKey?: string
   hideViewOptions?: boolean
+  // Rendered right after the search input, before the add-filter chips —
+  // for bespoke filter controls (e.g. a date range) that don't fit the
+  // faceted-filter shape.
+  beforeFilters?: React.ReactNode
   filters?: {
     columnId: string
     title: string
@@ -26,6 +30,7 @@ export function DataTableToolbar<TData>({
   searchPlaceholder = 'Filter...',
   searchKey,
   hideViewOptions = false,
+  beforeFilters,
   filters = [],
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
@@ -53,6 +58,7 @@ export function DataTableToolbar<TData>({
             className='h-8 w-[150px] lg:w-[250px]'
           />
         )}
+        {beforeFilters}
         <div className='flex gap-x-2'>
           {filters.map((filter) => {
             const column = table.getColumn(filter.columnId)

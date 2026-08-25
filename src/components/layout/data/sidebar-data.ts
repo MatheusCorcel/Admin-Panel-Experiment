@@ -5,6 +5,7 @@ import {
   MessageSquare,
   Mail,
   ClipboardCheck,
+  Flag,
   Settings,
   Dumbbell as DumbbellIcon,
 } from 'lucide-react'
@@ -56,6 +57,11 @@ export const sidebarData: SidebarData = {
           title: 'Checklists',
           url: '/checklists',
           icon: ClipboardCheck,
+        },
+        {
+          title: 'Flags',
+          url: '/flags',
+          icon: Flag,
         },
         {
           title: 'Settings',
