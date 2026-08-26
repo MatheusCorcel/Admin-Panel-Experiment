@@ -1,6 +1,6 @@
 import { format } from 'date-fns'
 import { type Column } from '@tanstack/react-table'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, XIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { type DateRangeFilterValue } from '@/hooks/use-table-url-state'
 import { Button } from '@/components/ui/button'
@@ -42,6 +42,20 @@ export function DateRangeFilter<TData>({
         >
           <CalendarIcon size={14} />
           {label}
+          {isSet && (
+            <span
+              role='button'
+              tabIndex={-1}
+              onClick={(e) => {
+                e.stopPropagation()
+                column.setFilterValue({})
+              }}
+              className='-mr-1 rounded-full p-0.5 hover:bg-muted'
+              aria-label='Clear date range'
+            >
+              <XIcon size={12} />
+            </span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className='w-auto p-0' align='start'>
