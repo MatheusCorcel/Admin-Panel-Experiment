@@ -21,14 +21,22 @@ import {
 } from '@/components/ui/sheet'
 import {
   CURRENT_ACTOR_NAME,
+  CURRENT_ACTOR_ROLE,
+  actorRoleLabels,
   auditEventVerbLabels,
-  categoryDotColor,
   classTypeLabels,
-  classesToApproximateDate,
-  flagCategories,
   flagNameLabels,
+  flagTypeDotColor,
+  flagTypeLabels,
+  formatClassCount,
+  getClassProgressLabel,
+  getCurrentOwner,
   getDisplayStatus,
+  getFlagType,
+  getResolvedByLabel,
   getStatusPillLabel,
+  isOverdue,
+  isReopened,
   isResolvable,
   reschedulePresets,
   resolvesToPermanent,
@@ -55,11 +63,9 @@ export function FlagDetailSheet({
 }: FlagDetailSheetProps) {
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
 
-  const categoryLabel =
-    flagCategories.find(({ value }) => value === flag.category)?.label ??
-    flag.category
   const isClosed = flag.status === 'resolved' || flag.status === 'permanent'
   const canAct = isResolvable(flag)
+  const classProgress = getClassProgressLabel(flag)
 
   function nextAuditEvent(
     type: FlagAuditEventType,
@@ -69,7 +75,7 @@ export function FlagDetailSheet({
       id: `${flag.id}-a${flag.auditTrail.length + 1}`,
       type,
       actorName: CURRENT_ACTOR_NAME,
-      actorRole: 'coach',
+      actorRole: CURRENT_ACTOR_ROLE,
       at: new Date(),
       detail,
     }
@@ -81,6 +87,7 @@ export function FlagDetailSheet({
     onUpdate({
       ...flag,
       status: toPermanent ? 'permanent' : 'resolved',
+      classesRemaining: null,
       resolvedByName: CURRENT_ACTOR_NAME,
       resolvedAt: now,
       convertedAt: toPermanent ? now : flag.convertedAt,
@@ -101,32 +108,28 @@ export function FlagDetailSheet({
     )
   }
 
+  // The previous resolver stays in History; only the snapshot fields clear.
+  // "Due this class" is a sample state that shows the flag needs action
+  // again — neither a reset nor a continued count is implied.
   function handleReopen() {
     const now = new Date()
-    const newDueAt =
-      flag.dueInClasses !== null
-        ? classesToApproximateDate(flag.dueInClasses, now)
-        : null
     onUpdate({
       ...flag,
       status: 'active',
+      classesRemaining: 0,
+      classesToResolve: null,
+      reopenedAt: now,
       resolvedByName: null,
       resolvedAt: null,
       convertedAt: null,
-      dueAt: newDueAt,
-      auditTrail: [
-        ...flag.auditTrail,
-        nextAuditEvent(
-          'snoozed',
-          'Reopened — treated the same as a reschedule in the history log (Gate 1, Q3 working assumption, pending Miguel)'
-        ),
-      ],
+      dueAt: null,
+      auditTrail: [...flag.auditTrail, nextAuditEvent('snoozed', 'Reopened')],
     })
     toast.success('Flag reopened.')
   }
 
   function applyReschedule(
-    nextDueAt: Date,
+    nextDueAt: Date | null,
     dueInClasses: number | null,
     detail: string
   ) {
@@ -135,10 +138,11 @@ export function FlagDetailSheet({
       status: 'active',
       dueAt: nextDueAt,
       dueInClasses,
+      classesRemaining: dueInClasses,
       auditTrail: [...flag.auditTrail, nextAuditEvent('snoozed', detail)],
     })
     setRescheduleOpen(false)
-    toast.success('Due date updated.')
+    toast.success('Flag rescheduled.')
   }
 
   function handleMakePermanent() {
@@ -148,6 +152,7 @@ export function FlagDetailSheet({
       status: 'permanent',
       dueAt: null,
       dueInClasses: null,
+      classesRemaining: null,
       resolvedByName: CURRENT_ACTOR_NAME,
       resolvedAt: now,
       convertedAt: now,
@@ -172,29 +177,21 @@ export function FlagDetailSheet({
               <span
                 className={cn(
                   'size-2.5 shrink-0 rounded-sm',
-                  categoryDotColor.get(flag.category)
+                  flagTypeDotColor.get(getFlagType(flag))
                 )}
               />
               <span className='text-xl'>{flagNameLabels[flag.flagName]}</span>
             </div>
           </SheetTitle>
           <SheetDescription>
-            {flag.client.name} · {categoryLabel} Flag
+            {flag.client.name} · {flagTypeLabels[getFlagType(flag)]} Flag
           </SheetDescription>
         </SheetHeader>
 
         <div className='flex flex-col gap-4 px-4'>
           <div className='grid grid-cols-[auto_1fr] gap-y-2.5 text-sm'>
-            <span className='text-muted-foreground'>Current Owner</span>
-            <span className='text-right font-medium'>
-              {flag.currentOwnerName ?? (
-                <span className='text-muted-foreground'>
-                  {flag.category === 'condition'
-                    ? '— (condition flags have no owner)'
-                    : '—'}
-                </span>
-              )}
-            </span>
+            <span className='text-muted-foreground'>Client</span>
+            <span className='text-right font-medium'>{flag.client.name}</span>
 
             <span className='text-muted-foreground'>Created by</span>
             <span className='text-right font-medium'>
@@ -204,14 +201,99 @@ export function FlagDetailSheet({
                 ' (courtesy entry)'}
             </span>
 
-            <span className='text-muted-foreground'>Class</span>
+            <span className='text-muted-foreground'>Created date</span>
+            <span className='text-right font-medium'>
+              {format(flag.createdAt, 'MMM d, yyyy')}
+            </span>
+
+            <span className='text-muted-foreground'>Current owner</span>
+            <span className='text-right font-medium'>
+              {getCurrentOwner(flag) ?? (
+                <span className='font-normal text-muted-foreground'>
+                  {flag.category === 'condition'
+                    ? '— (this flag type has no owner)'
+                    : isClosed && flag.currentOwnerName
+                      ? `— (last owner: ${flag.currentOwnerName})`
+                      : isClosed
+                        ? '— (no longer open)'
+                        : '—'}
+                </span>
+              )}
+            </span>
+
+            <span className='text-muted-foreground'>Status</span>
+            <span className='text-right'>
+              <Badge
+                variant='outline'
+                className={statusStyles.get(getDisplayStatus(flag))}
+              >
+                {getStatusPillLabel(flag)}
+              </Badge>
+            </span>
+
+            <span className='text-muted-foreground'>Class progress</span>
             <span
               className={cn(
                 'text-right font-medium',
-                !flag.classType && 'font-normal text-muted-foreground'
+                isOverdue(flag) && 'text-red-600 dark:text-red-400',
+                !classProgress && 'font-normal text-muted-foreground'
               )}
             >
-              {flag.classType ? classTypeLabels[flag.classType] : '—'}
+              {classProgress ?? '—'}
+            </span>
+
+            <span className='text-muted-foreground'>Resolution window</span>
+            <span
+              className={cn(
+                'text-right font-medium',
+                flag.dueInClasses === null && 'font-normal text-muted-foreground'
+              )}
+            >
+              {flag.dueInClasses === null
+                ? '—'
+                : formatClassCount(flag.dueInClasses)}
+            </span>
+
+            {isReopened(flag) && flag.reopenedAt && (
+              <>
+                <span className='text-muted-foreground'>Reopened</span>
+                <span className='text-right font-medium'>
+                  {format(flag.reopenedAt, 'MMM d, yyyy')}
+                </span>
+              </>
+            )}
+
+            {flag.dueAt && (
+              <>
+                <span className='text-muted-foreground'>Due date</span>
+                <span className='text-right font-medium'>
+                  {format(flag.dueAt, 'MMM d, yyyy')}
+                </span>
+              </>
+            )}
+
+            {isClosed && (
+              <>
+                <span className='text-muted-foreground'>Resolved by</span>
+                <span
+                  className={cn(
+                    'text-right font-medium',
+                    !flag.resolvedByName && 'font-normal text-muted-foreground'
+                  )}
+                >
+                  {getResolvedByLabel(flag)}
+                </span>
+              </>
+            )}
+
+            <span className='text-muted-foreground'>Exercise</span>
+            <span
+              className={cn(
+                'text-right font-medium',
+                !flag.exerciseName && 'font-normal text-muted-foreground'
+              )}
+            >
+              {flag.exerciseName ?? '—'}
             </span>
 
             <span className='text-muted-foreground'>Location</span>
@@ -224,26 +306,25 @@ export function FlagDetailSheet({
               {flag.location ?? '—'}
             </span>
 
-            <span className='text-muted-foreground'>Exercise</span>
+            <span className='text-muted-foreground'>Class</span>
             <span
               className={cn(
                 'text-right font-medium',
-                !flag.exerciseName && 'font-normal text-muted-foreground'
+                !flag.classType && 'font-normal text-muted-foreground'
               )}
             >
-              {flag.exerciseName ?? '—'}
-            </span>
-
-            <span className='text-muted-foreground'>Status</span>
-            <span className='text-right'>
-              <Badge
-                variant='outline'
-                className={statusStyles.get(getDisplayStatus(flag))}
-              >
-                {getStatusPillLabel(flag)}
-              </Badge>
+              {flag.classType ? classTypeLabels[flag.classType] : '—'}
             </span>
           </div>
+
+          {isReopened(flag) && (
+            <p className='rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground'>
+              <span className='font-medium text-foreground'>Open question:</span>{' '}
+              when a flag is reopened, does its class allowance reset or
+              continue from the earlier count? The progress shown is
+              illustrative.
+            </p>
+          )}
 
           {flag.legacyFlagName && (
             <p className='text-xs text-muted-foreground'>
@@ -269,7 +350,10 @@ export function FlagDetailSheet({
                   <span className='mt-1.5 size-1.5 shrink-0 rounded-sm bg-slate-300 dark:bg-slate-600' />
                   <div className='flex flex-col'>
                     <span className='text-sm'>
-                      {auditEventVerbLabels[event.type]} by {event.actorName}
+                      {auditEventVerbLabels[event.type]} by {event.actorName}{' '}
+                      <span className='text-muted-foreground'>
+                        ({actorRoleLabels[event.actorRole]})
+                      </span>
                       {event.detail ? ` — ${event.detail}` : ''}
                     </span>
                     <span className='text-xs text-muted-foreground'>
@@ -322,7 +406,7 @@ export function FlagDetailSheet({
                           className='justify-start'
                           onClick={() =>
                             applyReschedule(
-                              classesToApproximateDate(preset.classes),
+                              null,
                               preset.classes,
                               preset.label
                             )
@@ -360,8 +444,8 @@ export function FlagDetailSheet({
                 )}
               </div>
               <p className='pb-4 text-xs text-muted-foreground'>
-                Available to admin and coach (confirmed). Every action here adds
-                a new entry to the history above.
+                Admin override. Each action is added to the history above under
+                your name as Admin — not the current owner&apos;s.
               </p>
             </>
           )}
@@ -373,8 +457,7 @@ export function FlagDetailSheet({
                 &quot;Created by&quot; always names who actually entered this
                 flag — coach or client — independent of &quot;Current
                 Owner,&quot; which only tracks who is responsible for resolving
-                it. Condition flags never populate &quot;Current Owner,&quot;
-                and this flag type has no resolve action.
+                it. This flag type never has an owner and has no resolve action.
               </p>
             </>
           )}

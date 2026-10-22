@@ -1,6 +1,7 @@
 import { getRouteApi } from '@tanstack/react-router'
-import { Download } from 'lucide-react'
+import { Download, Info } from 'lucide-react'
 import { toast } from 'sonner'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -50,7 +51,7 @@ function FlagsPageContent() {
           <div>
             <h2 className='text-2xl font-bold tracking-tight'>Flags</h2>
             <p className='text-muted-foreground'>
-              Every coach, system, and condition flag across the app — search,
+              Every flag raised by a coach, the system, or a client — search,
               filter, and review trends.
             </p>
           </div>
@@ -59,6 +60,14 @@ function FlagsPageContent() {
             <span>Export CSV</span>
           </Button>
         </div>
+
+        <Alert>
+          <Info />
+          <AlertDescription>
+            Prototype with sample data: class progress, owners, resolvers and
+            the average are illustrative, not live counts.
+          </AlertDescription>
+        </Alert>
 
         <FlagsDashboard data={flags} />
 

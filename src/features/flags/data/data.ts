@@ -1,4 +1,3 @@
-import { differenceInCalendarDays } from 'date-fns'
 import {
   Eye,
   Ruler,
@@ -13,35 +12,71 @@ import {
 } from 'lucide-react'
 import type {
   Flag,
+  FlagActorRole,
+  FlagAuditActorRole,
   FlagAuditEventType,
-  FlagCategory,
   FlagName,
   FlagStatus,
 } from './schema'
 
-export const flagCategories = [
+// NOTE: the flag `category` (coach / system / condition) is still a real
+// part of the model — it drives resolve rules, owner rules, and which flag
+// names are valid. It just isn't surfaced as its own UI label any more; the
+// admin-facing "Type" below replaced it. That's why there are no
+// category label/colour maps here.
+
+// The "Type" shown in the admin UI is derived from WHO CREATED the flag,
+// not from its category: Coach / System / Client (Aug 26 sync). A Condition
+// flag entered by a coach as a courtesy reads "Coach", not "Client". Only the
+// origin label changed — condition content (Injury, Pregnancy…) keeps its name.
+//
+// Trade-off accepted knowingly: Type no longer separates Coach-category
+// flags from Condition-category ones — a coach-entered injury and a
+// coach-entered form check both read "Coach". The underlying `category`
+// field is untouched and still drives resolve rules, flag-name grouping,
+// and owner rules; only this display/filter dimension is creator-based.
+export const flagTypes = [
   { label: 'Coach', value: 'coach' },
   { label: 'System', value: 'system' },
-  { label: 'Condition', value: 'condition' },
+  { label: 'Client', value: 'client' },
 ] as const
 
-export const categoryStyles = new Map<FlagCategory, string>([
+export const flagTypeLabels: Record<FlagActorRole, string> = {
+  coach: 'Coach',
+  system: 'System',
+  client: 'Client',
+}
+
+export const flagTypeStyles = new Map<FlagActorRole, string>([
   ['coach', 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200'],
   [
     'system',
     'bg-purple-100/30 text-purple-900 dark:text-purple-200 border-purple-200',
   ],
   [
-    'condition',
+    'client',
     'bg-amber-100/30 text-amber-900 dark:text-amber-200 border-amber-200',
   ],
 ])
 
-export const categoryDotColor = new Map<FlagCategory, string>([
+export const flagTypeDotColor = new Map<FlagActorRole, string>([
   ['coach', 'bg-blue-500'],
   ['system', 'bg-purple-500'],
-  ['condition', 'bg-amber-500'],
+  ['client', 'bg-amber-500'],
 ])
+
+/** The admin-facing Type: who actually entered the flag. */
+export function getFlagType(flag: Flag): FlagActorRole {
+  return flag.createdByRole
+}
+
+/** How each actor's role reads in the History timeline. */
+export const actorRoleLabels: Record<FlagAuditActorRole, string> = {
+  coach: 'Coach',
+  client: 'Client',
+  system: 'System',
+  admin: 'Admin',
+}
 
 // Labels + icons for every specific flag, keyed by name. "scale_up" and
 // "scale_down" are shared between the "coach" and "system" categories.
@@ -78,6 +113,10 @@ export const flagStatuses = [
   { label: 'Permanent', value: 'permanent' },
 ] as const
 
+export const statusLabels = Object.fromEntries(
+  flagStatuses.map((s) => [s.value, s.label])
+) as Record<FlagStatus | 'overdue', string>
+
 export const statusStyles = new Map<FlagStatus | 'overdue', string>([
   ['active', 'bg-blue-100/30 text-blue-900 dark:text-blue-200 border-blue-200'],
   ['overdue', 'bg-red-100/30 text-red-900 dark:text-red-200 border-red-200'],
@@ -111,65 +150,87 @@ export const classTypeLabels: Record<string, string> = Object.fromEntries(
 )
 
 /**
- * "Overdue" is derived from `dueAt`, not a stored status (Gate 1 model) —
- * this is the one place that comparison happens.
+ * "Overdue" is derived, not a stored status (Gate 1 model) — this is the one
+ * place that comparison happens. It's class-based only, so Status always
+ * agrees with the class-progress text; calendar dates never make a flag
+ * overdue.
  */
-export function isOverdue(flag: Flag, now: Date = new Date()): boolean {
-  return flag.status === 'active' && flag.dueAt !== null && flag.dueAt < now
-}
-
-export function getDisplayStatus(
-  flag: Flag,
-  now: Date = new Date()
-): FlagStatus | 'overdue' {
-  return isOverdue(flag, now) ? 'overdue' : flag.status
-}
-
-/** Right-most table column: what's due, or how it was closed out. */
-export function getDueResolvedLabel(
-  flag: Flag,
-  now: Date = new Date()
-): string {
-  switch (getDisplayStatus(flag, now)) {
-    case 'overdue': {
-      const days = differenceInCalendarDays(now, flag.dueAt as Date)
-      return `${days} day${days === 1 ? '' : 's'} over`
-    }
-    case 'resolved':
-      return flag.resolvedAt
-        ? `Resolved ${flag.resolvedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-        : '—'
-    case 'permanent':
-      return flag.convertedAt
-        ? `Converted ${flag.convertedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-        : '—'
-    default:
-      return flag.dueAt
-        ? `Due ${flag.dueAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
-        : '—'
-  }
-}
-
-// SIMULATED METRIC — flagged for devs (Paper: "Open Questions & Dev Flags").
-// The dashboard's "Avg. Time to Resolution" is defined in classes, not
-// calendar days, to stay consistent with the rest of the flag lifecycle
-// (due windows are counted in classes via `dueInClasses`, not days). This
-// prototype has no real per-client class-attendance history, so there is
-// no way to count classes actually attended between `createdAt` and
-// resolution. Instead this assumes a flat cadence and converts elapsed
-// calendar days into an approximate class count. Real implementation must
-// replace this with an actual count of completed classes for that client
-// in the window.
-export const ASSUMED_CLASSES_PER_WEEK = 3
-
-export function getResolutionClasses(flag: Flag): number | null {
-  const closedAt = flag.resolvedAt ?? flag.convertedAt
-  if (!closedAt) return null
-  const days = Math.max(
-    0,
-    (closedAt.getTime() - flag.createdAt.getTime()) / (1000 * 60 * 60 * 24)
+export function isOverdue(flag: Flag): boolean {
+  return (
+    flag.status === 'active' &&
+    flag.classesRemaining !== null &&
+    flag.classesRemaining < 0
   )
-  return days * (ASSUMED_CLASSES_PER_WEEK / 7)
+}
+
+export function getDisplayStatus(flag: Flag): FlagStatus | 'overdue' {
+  return isOverdue(flag) ? 'overdue' : flag.status
+}
+
+/**
+ * Current owner is transient, not a permanent record: it only means
+ * something while the flag is still open. Once a flag is resolved or
+ * converted to permanent, "Resolved by" carries the lasting record and
+ * this returns null so the UI stops implying someone still owns it.
+ */
+export function getCurrentOwner(flag: Flag): string | null {
+  if (flag.status !== 'active') return null
+  return flag.currentOwnerName
+}
+
+export const RESOLVER_NOT_RECORDED = 'Not recorded'
+
+/**
+ * Who resolved a closed flag (the PIN holder). A closed flag with no
+ * recorded resolver says so explicitly — it's never filled in from the
+ * owner or creator. Open flags have no resolver yet, so this returns null.
+ */
+export function getResolvedByLabel(flag: Flag): string | null {
+  if (flag.status === 'active') return null
+  return flag.resolvedByName ?? RESOLVER_NOT_RECORDED
+}
+
+export function formatClassCount(classes: number): string {
+  return `${classes} class${classes === 1 ? '' : 'es'}`
+}
+
+/**
+ * The class-progress text shown next to Status, in the detail panel and in
+ * the CSV: "2 classes remaining", "Due this class", "1 class overdue", or
+ * "Resolved in 2 classes" once closed.
+ */
+export function getClassProgressLabel(flag: Flag): string | null {
+  if (flag.status !== 'active') {
+    return flag.classesToResolve === null
+      ? null
+      : `Resolved in ${formatClassCount(flag.classesToResolve)}`
+  }
+  const remaining = flag.classesRemaining
+  if (remaining === null) return null
+  if (remaining === 0) return 'Due this class'
+  return remaining > 0
+    ? `${formatClassCount(remaining)} remaining`
+    : `${formatClassCount(-remaining)} overdue`
+}
+
+/** Open flags sort by urgency (most overdue first); closed ones go last. */
+export function getClassProgressSortValue(flag: Flag): number | undefined {
+  if (flag.status !== 'active') return undefined
+  return flag.classesRemaining ?? undefined
+}
+
+export function isReopened(flag: Flag): boolean {
+  return flag.status === 'active' && Boolean(flag.reopenedAt)
+}
+
+/** Mean of the sample `classesToResolve` values, rounded to one decimal. */
+export function getAverageClassesToResolve(flags: Flag[]): number | null {
+  const counts = flags
+    .filter((f) => f.status !== 'active' && f.classesToResolve !== null)
+    .map((f) => f.classesToResolve as number)
+  if (counts.length === 0) return null
+  const mean = counts.reduce((sum, n) => sum + n, 0) / counts.length
+  return Math.round(mean * 10) / 10
 }
 
 /**
@@ -217,13 +278,14 @@ export function resolvesToPermanent(flag: Flag): boolean {
 const shortDate = (d: Date) =>
   d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
-/** The status pill text shown in the flag detail panel. */
-export function getStatusPillLabel(flag: Flag, now: Date = new Date()): string {
-  switch (getDisplayStatus(flag, now)) {
-    case 'overdue': {
-      const days = differenceInCalendarDays(now, flag.dueAt as Date)
-      return `Overdue · ${days} day${days === 1 ? '' : 's'} over`
-    }
+/**
+ * The status pill text shown in the flag detail panel. Status only — the
+ * class window has its own row, mirroring the separate table columns.
+ */
+export function getStatusPillLabel(flag: Flag): string {
+  switch (getDisplayStatus(flag)) {
+    case 'overdue':
+      return 'Overdue'
     case 'resolved':
       return flag.resolvedAt
         ? `Resolved ${shortDate(flag.resolvedAt)}`
@@ -233,10 +295,6 @@ export function getStatusPillLabel(flag: Flag, now: Date = new Date()): string {
         ? `Permanent · converted ${shortDate(flag.convertedAt)}`
         : 'Permanent'
     default:
-      if (flag.dueInClasses !== null) {
-        return `Active · due in ${flag.dueInClasses} class${flag.dueInClasses === 1 ? '' : 'es'}`
-      }
-      if (flag.dueAt) return `Active · due ${shortDate(flag.dueAt)}`
       return 'Active'
   }
 }
@@ -254,26 +312,16 @@ export const auditEventVerbLabels: Record<FlagAuditEventType, string> = {
 // Reminder" screenshot on the Paper "Confirmed Mechanics" artboard). No
 // numeric cap on how many times a flag's due date can be pushed out was
 // confirmed — flagged as open in the Paper "Open Questions & Dev Flags"
-// artboard.
+// artboard. A preset sets the class window and restarts the sample
+// countdown at that many classes; it's never turned into a date.
 export const reschedulePresets = [
   { label: 'Next class', classes: 1 },
   { label: 'In 2 classes', classes: 2 },
   { label: 'In 3 classes', classes: 3 },
 ] as const
 
-/**
- * Approximates a due date from a class count using the same simulated
- * cadence as getResolutionClasses() above — this prototype has no real
- * per-client class schedule to count forward from.
- */
-export function classesToApproximateDate(
-  classes: number,
-  from: Date = new Date()
-): Date {
-  const days = classes * (7 / ASSUMED_CLASSES_PER_WEEK)
-  return new Date(from.getTime() + days * 24 * 60 * 60 * 1000)
-}
-
-// Who admin/coach actions in the prototype are attributed to — there's no
-// real auth session wired into this mock data layer yet.
+// The signed-in admin that panel actions are attributed to — there's no real
+// auth session wired into this mock data layer yet. Recorded as an Admin
+// actor, never as the flag's current owner.
 export const CURRENT_ACTOR_NAME = 'Miguel Berlanga'
+export const CURRENT_ACTOR_ROLE = 'admin' satisfies FlagAuditActorRole

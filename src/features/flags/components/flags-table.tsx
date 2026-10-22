@@ -23,10 +23,11 @@ import {
 } from '@/components/ui/table'
 import { DataTablePagination, DataTableToolbar } from '@/components/data-table'
 import {
-  flagCategories,
   flagClassTypes,
   flagLocations,
   flagStatuses,
+  flagTypes,
+  getCurrentOwner,
 } from '../data/data'
 import { type Flag } from '../data/schema'
 import { DateRangeFilter } from './date-range-filter'
@@ -44,6 +45,7 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     clientSearch: false,
+    resolvedAt: false,
   })
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -57,12 +59,14 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
       })),
     [data]
   )
+  // Only open flags have a current owner, so closed flags' past owners are
+  // deliberately not offered as filter options.
   const currentOwnerOptions = useMemo(
     () =>
       Array.from(
         new Set(
           data
-            .map((f) => f.currentOwnerName)
+            .map((f) => getCurrentOwner(f))
             .filter((name): name is string => Boolean(name))
         )
       ).map((name) => ({ label: name, value: name })),
@@ -95,7 +99,7 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
       { columnId: 'clientSearch', searchKey: 'q', type: 'string' },
       { columnId: 'client', searchKey: 'client', type: 'array' },
       { columnId: 'currentOwner', searchKey: 'owner', type: 'array' },
-      { columnId: 'category', searchKey: 'type', type: 'array' },
+      { columnId: 'type', searchKey: 'type', type: 'array' },
       { columnId: 'classType', searchKey: 'classType', type: 'array' },
       { columnId: 'location', searchKey: 'location', type: 'array' },
       { columnId: 'exercise', searchKey: 'exercise', type: 'array' },
@@ -151,11 +155,13 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
         beforeFilters={
           <DateRangeFilter column={table.getColumn('createdAt')} />
         }
+        // The filter set agreed in the Aug 26 sync. Created by / Resolved by
+        // are columns and CSV fields, but weren't agreed as filters.
         filters={[
           { columnId: 'client', title: 'Client', options: clientOptions },
           {
             columnId: 'currentOwner',
-            title: 'Current Owner',
+            title: 'Current owner',
             options: currentOwnerOptions,
           },
           {
@@ -176,9 +182,9 @@ export function FlagsTable({ data, search, navigate }: FlagsTableProps) {
           },
           { columnId: 'exercise', title: 'Exercise', options: exerciseOptions },
           {
-            columnId: 'category',
+            columnId: 'type',
             title: 'Type',
-            options: flagCategories.map(({ label, value }) => ({
+            options: flagTypes.map(({ label, value }) => ({
               label,
               value,
             })),

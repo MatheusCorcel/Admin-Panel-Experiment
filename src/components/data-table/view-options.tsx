@@ -39,14 +39,15 @@ export function DataTableViewOptions<TData>({
               typeof column.accessorFn !== 'undefined' && column.getCanHide()
           )
           .map((column) => {
+            const label = column.columnDef.meta?.label
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
-                className='capitalize'
+                className={label ? undefined : 'capitalize'}
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {label ?? column.id}
               </DropdownMenuCheckboxItem>
             )
           })}

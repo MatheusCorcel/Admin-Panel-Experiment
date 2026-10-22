@@ -1,51 +1,64 @@
 import {
   classTypeLabels,
-  flagCategories,
   flagNameLabels,
+  flagTypeLabels,
+  formatClassCount,
+  getClassProgressLabel,
+  getCurrentOwner,
   getDisplayStatus,
-  getDueResolvedLabel,
+  getFlagType,
+  getResolvedByLabel,
+  statusLabels,
 } from './data'
 import { type Flag } from './schema'
 
+// Mirrors the on-screen column order, including columns hidden by default
+// (Resolved date), plus the configured resolution window and the note.
 const csvColumns = [
   'Client',
-  'Current Owner',
-  'Created By',
+  'Created by',
+  'Created date',
+  'Current owner',
+  'Status',
+  'Class progress',
+  'Resolution window',
+  'Resolved by',
+  'Resolved date',
   'Type',
   'Flag',
-  'Class',
-  'Location',
   'Exercise',
-  'Status',
-  'Created',
-  'Due / Resolved',
+  'Location',
+  'Class',
   'Note',
 ]
+
+const longDate = (d: Date) =>
+  d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 
 function csvEscape(value: string): string {
   return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
 }
 
 function flagToRow(flag: Flag): string[] {
-  const categoryLabel =
-    flagCategories.find(({ value }) => value === flag.category)?.label ??
-    flag.category
   return [
     flag.client.name,
-    flag.currentOwnerName ?? '—',
     flag.createdByName,
-    categoryLabel,
+    longDate(flag.createdAt),
+    getCurrentOwner(flag) ?? '—',
+    statusLabels[getDisplayStatus(flag)],
+    getClassProgressLabel(flag) ?? '—',
+    flag.dueInClasses === null ? '—' : formatClassCount(flag.dueInClasses),
+    getResolvedByLabel(flag) ?? '—',
+    flag.resolvedAt ? longDate(flag.resolvedAt) : '—',
+    flagTypeLabels[getFlagType(flag)],
     flagNameLabels[flag.flagName],
-    flag.classType ? classTypeLabels[flag.classType] : '—',
-    flag.location ?? '—',
     flag.exerciseName ?? '—',
-    getDisplayStatus(flag),
-    flag.createdAt.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }),
-    getDueResolvedLabel(flag),
+    flag.location ?? '—',
+    flag.classType ? classTypeLabels[flag.classType] : '—',
     flag.note ?? '',
   ]
 }

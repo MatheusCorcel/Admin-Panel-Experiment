@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { cn } from '@/lib/utils'
-import { getDisplayStatus, getResolutionClasses } from '../data/data'
+import { getAverageClassesToResolve, getDisplayStatus } from '../data/data'
 import { type Flag } from '../data/schema'
 
 type FlagsDashboardProps = {
@@ -9,24 +9,16 @@ type FlagsDashboardProps = {
 
 export function FlagsDashboard({ data }: FlagsDashboardProps) {
   const stats = useMemo(() => {
-    const now = new Date()
     let active = 0
     let overdue = 0
     let resolvedThisPeriod = 0
-    let totalResolutionClasses = 0
-    let resolutionCount = 0
 
     for (const flag of data) {
-      const displayStatus = getDisplayStatus(flag, now)
+      const displayStatus = getDisplayStatus(flag)
       if (displayStatus === 'active' || displayStatus === 'overdue') active += 1
       if (displayStatus === 'overdue') overdue += 1
       if (flag.status === 'resolved' || flag.status === 'permanent') {
         resolvedThisPeriod += 1
-        const classes = getResolutionClasses(flag)
-        if (classes !== null) {
-          totalResolutionClasses += classes
-          resolutionCount += 1
-        }
       }
     }
 
@@ -34,10 +26,7 @@ export function FlagsDashboard({ data }: FlagsDashboardProps) {
       active,
       overdue,
       resolvedThisPeriod,
-      // Simulated — see getResolutionClasses() in data.ts and the "For devs"
-      // section of the Paper "Open Questions & Dev Flags" artboard.
-      avgResolutionClasses:
-        resolutionCount > 0 ? totalResolutionClasses / resolutionCount : null,
+      avgClassesToResolve: getAverageClassesToResolve(data),
     }
   }, [data])
 
@@ -52,10 +41,11 @@ export function FlagsDashboard({ data }: FlagsDashboardProps) {
       <StatCard
         label='Avg. Time to Resolution'
         value={
-          stats.avgResolutionClasses === null
+          stats.avgClassesToResolve === null
             ? '—'
-            : `${stats.avgResolutionClasses.toFixed(1)} classes`
+            : `${stats.avgClassesToResolve} classes`
         }
+        hint='Sample data'
       />
     </div>
   )
@@ -64,10 +54,12 @@ export function FlagsDashboard({ data }: FlagsDashboardProps) {
 function StatCard({
   label,
   value,
+  hint,
   highlight = false,
 }: {
   label: string
   value: string
+  hint?: string
   highlight?: boolean
 }) {
   return (
@@ -93,6 +85,7 @@ function StatCard({
       >
         {value}
       </span>
+      {hint && <span className='text-xs text-muted-foreground'>{hint}</span>}
     </div>
   )
 }

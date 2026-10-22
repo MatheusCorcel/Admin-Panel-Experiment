@@ -8,9 +8,10 @@ const flagsSearchSchema = z.object({
   q: z.string().optional().catch(undefined),
   client: z.array(z.string()).optional().catch([]),
   owner: z.array(z.string()).optional().catch([]),
+  // Type is derived from who created the flag, not from its category.
   type: z
     .array(
-      z.union([z.literal('coach'), z.literal('system'), z.literal('condition')])
+      z.union([z.literal('coach'), z.literal('system'), z.literal('client')])
     )
     .optional()
     .catch([]),

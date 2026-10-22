@@ -37,7 +37,7 @@ export type LegacyFlagName = z.infer<typeof legacyFlagNameSchema>
 
 // "permanent" is the terminal state for a resolved Injury or Surgery flag
 // only (Gate 1, Q1) — it converts into a static reminder, no longer active
-// or counted. "overdue" is derived from dueAt/dueInClasses, not stored here.
+// or counted. "overdue" is derived from `classesRemaining`, not stored here.
 const flagStatusSchema = z.union([
   z.literal('active'),
   z.literal('resolved'),
@@ -51,6 +51,15 @@ const flagActorRoleSchema = z.union([
   z.literal('system'),
 ])
 export type FlagActorRole = z.infer<typeof flagActorRoleSchema>
+
+// Who performed an action in the history. Admin can't create a flag (so it
+// isn't a "Type"), but an admin override must be recorded as the admin who
+// did it, never as the flag's current owner.
+const flagAuditActorRoleSchema = z.union([
+  flagActorRoleSchema,
+  z.literal('admin'),
+])
+export type FlagAuditActorRole = z.infer<typeof flagAuditActorRoleSchema>
 
 // One entry in a flag's audit trail (Gate 1, user story 2).
 const flagAuditEventTypeSchema = z.union([
@@ -67,7 +76,7 @@ const flagAuditEventSchema = z.object({
   id: z.string(),
   type: flagAuditEventTypeSchema,
   actorName: z.string(),
-  actorRole: flagActorRoleSchema,
+  actorRole: flagAuditActorRoleSchema,
   at: z.coerce.date(),
   detail: z.string().optional(),
 })
@@ -108,21 +117,35 @@ const flagSchema = z.object({
   createdAt: z.coerce.date(),
   createdInClassId: z.string().nullable(),
 
-  // The due-date countdown (Gate 1, Q5). Null for flags that never resolve
-  // on a timer (generic Condition) or auto-clear on a threshold (New Client).
+  // `dueInClasses` is the configured resolution window set at creation or
+  // reschedule (e.g. the "In 3 classes" preset). `dueAt` is a calendar date
+  // and only exists for custom-date reschedules and date-based conditions;
+  // it never drives the class count or Overdue. Null for flags that never
+  // resolve on a timer (generic Condition) or auto-clear on a threshold
+  // (New Client).
   dueAt: z.coerce.date().nullable(),
   dueInClasses: z.number().nullable(),
 
-  // The coach on the hook to resolve this flag right now — renamed from
-  // "Coach" to "Current Owner" in the UI after user feedback that "Coach"
-  // read as ambiguous on System-category flags. Always null for Condition
-  // flags — nobody is responsible for those (Gate 1, Q7/Q9). For Coach/System
-  // flags this is a derived value: it starts as the creating coach and
-  // auto-transfers to whoever teaches the client's last class before the
-  // flag is due (Gate 1, Q2) — captured here as the current snapshot, with
-  // the transfer itself logged in `auditTrail`.
+  // Hand-authored sample progress, since there's no attendance feed. For an
+  // open flag: classes left before it's due (0 = due this class, negative =
+  // overdue). For a closed flag: classes it took to resolve. Neither is a
+  // final counting formula.
+  classesRemaining: z.number().nullable(),
+  classesToResolve: z.number().nullable(),
+  reopenedAt: z.coerce.date().nullable().optional(),
+
+  // The coach on the hook to resolve this flag right now. Always null for
+  // Condition flags — nobody is responsible for those (Gate 1, Q7/Q9). For
+  // Coach/System flags it starts as the creating coach and moves to the coach
+  // of the client's next class whenever that coach changes — not only once a
+  // set number of classes remain. Each move is logged in `auditTrail`. Kept
+  // after resolution as the last owner; the UI shows "—" for closed flags.
   currentOwnerName: z.string().nullable(),
 
+  // The person who actually resolved the flag — on the iPad that's whoever
+  // entered their coach PIN, even if another coach owns the flag or leads the
+  // class. Null when the resolver wasn't recorded; never backfilled from the
+  // current owner.
   resolvedByName: z.string().nullable(),
   resolvedAt: z.coerce.date().nullable(),
 
