@@ -30,6 +30,33 @@ export const exerciseTypeLabels: Record<ExerciseType, string> = {
   isolation: 'Isolation',
 }
 
+export const exerciseEquipment = [
+  'none',
+  'barbell',
+  'dumbbell',
+  'cable',
+  'machine',
+  'bodyweight',
+] as const
+export type ExerciseEquipment = (typeof exerciseEquipment)[number]
+
+export const exerciseEquipmentLabels: Record<ExerciseEquipment, string> = {
+  none: 'None',
+  barbell: 'Barbell',
+  dumbbell: 'Dumbbell',
+  cable: 'Cable',
+  machine: 'Machine',
+  bodyweight: 'Bodyweight',
+}
+
+export const dumbbellModes = ['single', 'pair'] as const
+export type DumbbellMode = (typeof dumbbellModes)[number]
+
+export const dumbbellModeLabels: Record<DumbbellMode, string> = {
+  single: 'Single',
+  pair: 'Pair',
+}
+
 // Granular muscle taxonomy used for Muscle Contribution. Kept separate from
 // `muscleGroup` above (which drives the library table badge/filter) because
 // this list must match the muscles surfaced in the Insights feature.
@@ -85,6 +112,10 @@ export const exerciseTemplateSchema = z.object({
   name: z.string().min(1, 'Exercise name is required.'),
   muscleGroup: z.enum(muscleGroups),
   exerciseType: z.enum(exerciseTypes),
+  // Optional so existing seeded/API-shaped exercise records remain valid.
+  equipment: z.enum(exerciseEquipment).optional(),
+  // Prototype-only metadata until the API exposes a single/pair contract.
+  dumbbellMode: z.enum(dumbbellModes).optional(),
   coachCues: z.string(),
   primaryMuscle: muscleContributionSchema.optional(),
   secondaryMuscles: z.array(muscleContributionSchema).max(2).optional(),

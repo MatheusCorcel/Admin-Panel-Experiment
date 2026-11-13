@@ -1,5 +1,5 @@
-import { type ColumnDef } from '@tanstack/react-table'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ import {
   contributionMuscleLabels,
   muscleGroupLabels,
   exerciseTypeLabels,
+  exerciseEquipmentLabels,
   type ExerciseTemplate,
 } from '../data/schema'
 import { useExerciseLibrary } from './exercise-library-provider'
@@ -81,7 +82,9 @@ export const exerciseLibraryColumns: ColumnDef<ExerciseTemplate>[] = [
       <DataTableColumnHeader column={column} title='Muscle Group' />
     ),
     cell: ({ row }) => {
-      const group = row.getValue('muscleGroup') as keyof typeof muscleGroupLabels
+      const group = row.getValue(
+        'muscleGroup'
+      ) as keyof typeof muscleGroupLabels
       return (
         <Badge variant='outline' className='capitalize'>
           {muscleGroupLabels[group] ?? group}
@@ -113,7 +116,8 @@ export const exerciseLibraryColumns: ColumnDef<ExerciseTemplate>[] = [
               +{' '}
               {secondary
                 .map(
-                  (m) => `${contributionMuscleLabels[m.muscle]} ${m.contribution}`
+                  (m) =>
+                    `${contributionMuscleLabels[m.muscle]} ${m.contribution}`
                 )
                 .join(', ')}
             </span>
@@ -124,12 +128,36 @@ export const exerciseLibraryColumns: ColumnDef<ExerciseTemplate>[] = [
     enableSorting: false,
   },
   {
+    accessorKey: 'equipment',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Equipment' />
+    ),
+    cell: ({ row }) => {
+      const exercise = row.original
+      const equipment = exercise.equipment ?? 'none'
+      const mode =
+        equipment === 'dumbbell' && exercise.dumbbellMode
+          ? ` · ${exercise.dumbbellMode}`
+          : ''
+      return (
+        <Badge variant='outline'>
+          {exerciseEquipmentLabels[equipment]}
+          {mode}
+        </Badge>
+      )
+    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    enableSorting: false,
+  },
+  {
     accessorKey: 'exerciseType',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Type' />
     ),
     cell: ({ row }) => {
-      const type = row.getValue('exerciseType') as keyof typeof exerciseTypeLabels
+      const type = row.getValue(
+        'exerciseType'
+      ) as keyof typeof exerciseTypeLabels
       return (
         <Badge variant='secondary' className='capitalize'>
           {exerciseTypeLabels[type] ?? type}

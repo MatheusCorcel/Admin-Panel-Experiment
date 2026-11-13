@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { z } from 'zod'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, X } from 'lucide-react'
-import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { CoachCuesEditor } from '@/components/ui/coach-cues-editor'
 import {
   Dialog,
   DialogClose,
@@ -30,13 +31,18 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { CoachCuesEditor } from '@/components/ui/coach-cues-editor'
 import {
   contributionMuscles,
   muscleGroupLabels,
   muscleGroups,
   exerciseTypes,
+  exerciseEquipment,
+  exerciseEquipmentLabels,
+  dumbbellModes,
+  dumbbellModeLabels,
   type ExerciseTemplate,
+  type DumbbellMode,
+  type ExerciseEquipment,
 } from '../data/schema'
 import { ExerciseSelectCombobox } from './exercise-select-combobox'
 import { MuscleCombobox } from './muscle-combobox'
@@ -59,6 +65,8 @@ const formSchema = z
     exerciseType: z.enum(exerciseTypes, {
       required_error: 'Please select an exercise type.',
     }),
+    equipment: z.enum(exerciseEquipment),
+    dumbbellMode: z.enum(dumbbellModes),
     coachCues: z.string().optional(),
     primaryMuscle: z.enum(contributionMuscles, {
       required_error: 'Select the primary muscle.',
@@ -100,6 +108,8 @@ const defaultFormValues: ExerciseTemplateForm = {
   name: '',
   muscleGroup: 'chest',
   exerciseType: 'compound',
+  equipment: 'none',
+  dumbbellMode: 'single',
   coachCues: '',
   primaryMuscle: 'chest',
   primaryContribution: 1,
@@ -124,6 +134,9 @@ export function ExerciseTemplateDialog({
   onSave,
 }: ExerciseTemplateDialogProps) {
   const isEdit = !!exercise
+  const setupByEquipment = useRef<
+    Partial<Record<ExerciseEquipment, DumbbellMode>>
+  >({})
 
   const form = useForm<ExerciseTemplateForm>({
     resolver: zodResolver(formSchema),
@@ -137,11 +150,16 @@ export function ExerciseTemplateDialog({
 
   useEffect(() => {
     if (open) {
+      setupByEquipment.current = exercise?.equipment
+        ? { [exercise.equipment]: exercise.dumbbellMode ?? 'single' }
+        : {}
       if (exercise) {
         form.reset({
           name: exercise.name,
           muscleGroup: exercise.muscleGroup,
           exerciseType: exercise.exerciseType,
+          equipment: exercise.equipment ?? 'none',
+          dumbbellMode: exercise.dumbbellMode ?? 'single',
           coachCues: exercise.coachCues,
           primaryMuscle: exercise.primaryMuscle?.muscle ?? 'chest',
           primaryContribution: exercise.primaryMuscle?.contribution ?? 1,
@@ -156,6 +174,8 @@ export function ExerciseTemplateDialog({
   }, [open, exercise, form])
 
   const primaryMuscle = form.watch('primaryMuscle')
+  const equipment = form.watch('equipment')
+  const showEquipmentSetup = equipment === 'dumbbell'
   const secondaryMuscles = form.watch('secondaryMuscles')
   const alternatePrimaryId = form.watch('alternatePrimaryId')
   const alternateSecondaryId = form.watch('alternateSecondaryId')
@@ -165,9 +185,7 @@ export function ExerciseTemplateDialog({
       primaryMuscle,
       ...secondaryMuscles.map((m) => m.muscle),
     ]
-    const nextMuscle = contributionMuscles.find(
-      (m) => !usedMuscles.includes(m)
-    )
+    const nextMuscle = contributionMuscles.find((m) => !usedMuscles.includes(m))
     secondaryMusclesArray.append({
       muscle: nextMuscle ?? contributionMuscles[0],
       contribution: secondaryMusclesArray.fields.length === 0 ? 0.5 : 0.25,
@@ -184,6 +202,9 @@ export function ExerciseTemplateDialog({
       name: values.name,
       muscleGroup: values.muscleGroup,
       exerciseType: values.exerciseType,
+      equipment: values.equipment,
+      dumbbellMode:
+        values.equipment === 'barbell' ? 'single' : values.dumbbellMode,
       coachCues: values.coachCues ?? '',
       primaryMuscle: {
         muscle: values.primaryMuscle,
@@ -207,9 +228,7 @@ export function ExerciseTemplateDialog({
     >
       <DialogContent className='flex max-h-[85vh] flex-col sm:max-w-xl'>
         <DialogHeader className='text-start'>
-          <DialogTitle>
-            {isEdit ? 'Edit Exercise' : 'Add Exercise'}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit Exercise' : 'Add Exercise'}</DialogTitle>
           <DialogDescription>
             {isEdit
               ? 'Update the exercise details in the library.'
@@ -263,10 +282,7 @@ export function ExerciseTemplateDialog({
                 <FormItem>
                   <FormLabel>Exercise Name</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder='e.g., Barbell Bench Press'
-                      {...field}
-                    />
+                    <Input placeholder='e.g., Barbell Bench Press' {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -279,10 +295,7 @@ export function ExerciseTemplateDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Muscle Group</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder='Select a muscle group' />
@@ -300,6 +313,79 @@ export function ExerciseTemplateDialog({
                 </FormItem>
               )}
             />
+
+            <div className='grid items-start gap-4 sm:grid-cols-2'>
+              <FormField
+                control={form.control}
+                name='equipment'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Equipment</FormLabel>
+                    <Select
+                      onValueChange={(next: ExerciseEquipment) => {
+                        setupByEquipment.current[field.value] =
+                          form.getValues('dumbbellMode')
+                        field.onChange(next)
+                        form.setValue(
+                          'dumbbellMode',
+                          setupByEquipment.current[next] ?? 'single'
+                        )
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder='Select equipment' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {exerciseEquipment.map((equipment) => (
+                          <SelectItem key={equipment} value={equipment}>
+                            {exerciseEquipmentLabels[equipment]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {showEquipmentSetup && (
+                <FormField
+                  control={form.control}
+                  name='dumbbellMode'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Equipment setup</FormLabel>
+                      <FormControl>
+                        <ToggleGroup
+                          type='single'
+                          value={field.value}
+                          onValueChange={(value) =>
+                            value && field.onChange(value)
+                          }
+                          aria-label='Equipment setup'
+                          className='h-9 w-full rounded-lg bg-muted p-1'
+                        >
+                          {dumbbellModes.map((mode) => (
+                            <ToggleGroupItem
+                              key={mode}
+                              value={mode}
+                              aria-label={`${dumbbellModeLabels[mode]} equipment`}
+                              className='h-7 flex-1 rounded-md px-3 hover:bg-transparent data-[state=on]:bg-background data-[state=on]:text-foreground data-[state=on]:shadow-sm'
+                            >
+                              {dumbbellModeLabels[mode]}
+                            </ToggleGroupItem>
+                          ))}
+                        </ToggleGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
 
             <FormField
               control={form.control}
@@ -342,9 +428,7 @@ export function ExerciseTemplateDialog({
                         <MuscleCombobox
                           value={field.value}
                           onChange={field.onChange}
-                          excludeMuscles={secondaryMuscles.map(
-                            (m) => m.muscle
-                          )}
+                          excludeMuscles={secondaryMuscles.map((m) => m.muscle)}
                         />
                       </FormControl>
                       <FormMessage />
